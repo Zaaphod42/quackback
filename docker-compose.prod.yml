@@ -98,9 +98,7 @@ services:
     container_name: quackback-dragonfly
     restart: unless-stopped
     # BullMQ requires cluster_mode=emulated + lock_on_hashtags for Lua script compatibility.
-    # --maxmemory : le VPS est partage avec quatre autres projets, et le portail
-    # de support n'a besoin que de quelques Mo de cache et de files.
-    command: dragonfly --cluster_mode=emulated --lock_on_hashtags --maxmemory=256mb
+    command: dragonfly --cluster_mode=emulated --lock_on_hashtags
     # No host port — reachable only on the internal network.
     volumes:
       - dragonfly_data:/data
