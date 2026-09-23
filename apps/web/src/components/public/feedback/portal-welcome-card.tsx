@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { RichTextContent } from '@/components/ui/rich-text-editor'
 import { isEmptyTiptapDoc } from '@/lib/shared/utils/is-empty-tiptap-doc'
 import { cn } from '@/lib/shared/utils'
+import { decouperTitre } from './titre-carte-accueil'
 import type { PortalWelcomeCard as PortalWelcomeCardData } from '@/lib/shared/types/settings'
 
 interface PortalWelcomeCardProps {
@@ -12,6 +13,10 @@ function PortalWelcomeCardImpl({ welcomeCard }: PortalWelcomeCardProps) {
   if (!welcomeCard?.enabled) return null
   const trimmedTitle = welcomeCard.title.trim()
   const hasTitle = trimmedTitle.length > 0
+  // La barre verticale coupe le titre : ce qui la suit se dore (voir
+  // `titre-carte-accueil.ts`, qui dit pourquoi une feuille de style ne peut pas
+  // le faire seule).
+  const titre = decouperTitre(trimmedTitle)
   const hasBody = !isEmptyTiptapDoc(welcomeCard.body)
   if (!hasTitle && !hasBody) return null
 
@@ -22,7 +27,13 @@ function PortalWelcomeCardImpl({ welcomeCard }: PortalWelcomeCardProps) {
     >
       {hasTitle && (
         <h2 id="portal-welcome-title" className="text-xl sm:text-2xl font-semibold tracking-tight">
-          {trimmedTitle}
+          {titre.debut}
+          {titre.or && (
+            <>
+              {' '}
+              <span className="portal-welcome-title__or">{titre.or}</span>
+            </>
+          )}
         </h2>
       )}
       {hasBody && (
