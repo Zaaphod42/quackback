@@ -122,14 +122,44 @@ describe('PortalHeader — Admin dropdown item', () => {
     expect(await screen.findByRole('menuitem', { name: /admin/i })).toBeInTheDocument()
   })
 
-  it('hides the Admin item for portal users', async () => {
+  // ⚠️ UN UTILISATEUR DU PORTAIL N'A PLUS DE MENU DE COMPTE DU TOUT (Seb
+  // 2026-09-23). L'ancienne version de ce test ouvrait son menu pour verifier
+  // qu'« Admin » n'y figurait pas ; il n'y a plus de menu a ouvrir, ce qui est
+  // une garantie plus forte, et c'est elle qu'on fige ici.
+  it('gives a portal user no account menu at all', () => {
     renderHeader({ userRole: 'user', isLoggedIn: true })
-    const trigger = screen.getByRole('button')
-    fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false })
-    // Wait for the dropdown to open (Settings will appear), then confirm
-    // no Admin menuitem is present.
-    await screen.findByRole('menuitem', { name: /settings/i })
-    expect(screen.queryByRole('menuitem', { name: /admin/i })).toBeNull()
+    // La seule commande de la barre est le bouton de retour vers Diafane, et
+    // c'est un lien.
+    expect(screen.queryByRole('button')).toBeNull()
+    expect(screen.queryByRole('menuitem')).toBeNull()
+  })
+})
+
+// ⭐ LE RETOUR VERS DIAFANE : le portail est une surface du produit, sa barre
+// ramene donc toujours a l'application ou a la vitrine, comme celle des guides.
+describe('PortalHeader — le bouton Diafane', () => {
+  afterEach(() => cleanup())
+
+  it('sends a signed-in visitor to the app', () => {
+    renderHeader({ userRole: 'user', isLoggedIn: true })
+    const lien = screen.getByRole('link', { name: /open the app/i })
+    expect(lien).toHaveAttribute('href', 'https://diafane.com/app')
+  })
+
+  it('sends an anonymous visitor to the public home page', () => {
+    mockHasAny.mockReturnValue(true)
+    renderHeader({ userRole: null, isLoggedIn: false })
+    const lien = screen.getByRole('link', { name: /discover diafane/i })
+    expect(lien).toHaveAttribute('href', 'https://diafane.com/')
+  })
+
+  // Il remplace l'inscription propre au portail : un compte y est cree par le
+  // jeton signe que le widget envoie depuis l'application, jamais a la main.
+  it('replaces the portal own sign-up button', () => {
+    mockHasAny.mockReturnValue(true)
+    renderHeader({ userRole: null, isLoggedIn: false })
+    expect(screen.queryByRole('button', { name: /^sign up$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
   })
 })
 
