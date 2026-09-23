@@ -393,6 +393,20 @@ export function PortalHeader({
               <span className="portal-header__name font-semibold hidden sm:block max-w-[18ch] line-clamp-2 text-[var(--header-foreground)]">
                 {orgName}
               </span>
+              {/*
+                ⭐ LE NOM DE LA SURFACE, a droite du mot, comme sur les pages
+                publiques de Diafane (`Components/Vitrine3/BarreVitrine.vue`).
+
+                Il vivait dans un `::after` de la feuille d'habillage, faute de
+                pouvoir toucher au code : il sortait donc en ANGLAIS meme pour
+                un visiteur francais, alors que tout le reste de la barre est
+                traduit (le portail resout la langue depuis `Accept-Language`).
+                Une regle de style ne sait pas traduire ; ceci si.
+              */}
+              <span className="portal-header__surface">
+                <span aria-hidden="true">/</span>
+                <FormattedMessage id="portal.header.surface" defaultMessage="Help and ideas" />
+              </span>
             </Link>
             <AuthButtons />
           </div>
