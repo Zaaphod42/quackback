@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useRouter, useRouterState, useRouteContext } from '@tanstack/react-router'
 import { useTheme } from 'next-themes'
-import { buildNavItems } from './portal-header-nav'
+import { buildNavItems, estLienExterne } from './portal-header-nav'
 import { useIntl, FormattedMessage } from 'react-intl'
 import { cn } from '@/lib/shared/utils'
 import { isTeamMember } from '@/lib/shared/roles'
@@ -153,6 +153,21 @@ export function PortalHeader({
   const Navigation = () => (
     <nav className="portal-nav flex items-center gap-1 whitespace-nowrap">
       {navItems.map((item) => {
+        // Les guides vivent sur `diafane.com` : c'est un `<a>`, le routeur du
+        // portail ne connait pas cette adresse, et rien ne le marque courant
+        // puisqu'on n'y est jamais.
+        if (estLienExterne(item)) {
+          return (
+            <a
+              key={item.href}
+              href={item.href}
+              className="portal-nav__item px-3 py-2 text-sm font-medium transition-colors [border-radius:calc(var(--radius)*0.8)] text-[var(--nav-inactive-color)] hover:text-[var(--nav-active-foreground)] hover:bg-[var(--nav-active-background)]/50"
+            >
+              {intl.formatMessage({ id: item.messageId, defaultMessage: item.defaultMessage })}
+            </a>
+          )
+        }
+
         const isActive =
           item.to === '/'
             ? pathname === '/' || /^\/[^/]+\/posts\//.test(pathname)
