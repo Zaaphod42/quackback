@@ -28,7 +28,28 @@
 
 services:
   app:
-    image: ghcr.io/quackbackio/quackback:${QUACKBACK_TAG:-latest}
+    # ⭐ DIAFANE : L'IMAGE SE CONSTRUIT DEPUIS CE DEPOT, elle ne se tire plus de
+    # `ghcr.io/quackbackio/quackback`.
+    #
+    # POURQUOI, ET CE QUE CA A COUTE DE L'APPRENDRE (2026-09-23) : tant que
+    # cette ligne disait `image:`, le code venant du registre de l'editeur,
+    # AUCUN correctif de ce fork ne pouvait atteindre le portail. Deux
+    # demandes de fusion ont ete ecrites, relues et fusionnees sans avoir la
+    # moindre chance de s'appliquer, et leur absence a d'abord ete prise pour
+    # un deploiement rate. Le depot n'etait lu que pour CE fichier.
+    #
+    # Ce que ca change : chaque deploiement devient une vraie compilation
+    # (`bun install` puis le build de `apps/web`), sur un VPS partage avec cinq
+    # autres projets dont le disque s'est deja rempli une fois. C'est le prix
+    # accepte par Seb pour que le fork veuille dire quelque chose.
+    #
+    # ⚠️ PAS DE CLE `image:` A COTE DE `build:` : un `docker compose pull`
+    # irait alors chercher l'image de l'editeur et pourrait la servir a la
+    # place de la notre, ce qui ramenerait exactement le defaut ci-dessus,
+    # cette fois en silence. `QUACKBACK_TAG` ne sert donc plus a rien.
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
     container_name: quackback-app
     restart: unless-stopped
     init: true
