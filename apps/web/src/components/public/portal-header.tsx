@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useRouter, useRouterState, useRouteContext } from '@tanstack/react-router'
 import { useTheme } from 'next-themes'
-import { buildNavItems, estLienExterne } from './portal-header-nav'
+import { buildNavItems, estLienExterne, DIAFANE } from './portal-header-nav'
 import { useIntl, FormattedMessage } from 'react-intl'
 import { cn } from '@/lib/shared/utils'
 import { isTeamMember } from '@/lib/shared/roles'
@@ -277,11 +277,41 @@ export function PortalHeader({
         </Button>
       )}
 
+      {/*
+        ⭐ LE RETOUR VERS DIAFANE (Seb 2026-09-23). Le portail est une surface du
+        produit, pas un site a part : sa barre porte donc le meme bouton dore que
+        la vitrine, a la meme place. Connecte, il mene a la bibliotheque ;
+        visiteur, il mene a l'accueil public, ou il tient le role de l'appel a
+        l'action. C'est un <a> : on sort du portail.
+      */}
+      <Button size="sm" asChild className="portal-header__diafane ms-1 me-2">
+        <a href={isLoggedIn ? DIAFANE.app : DIAFANE.accueil}>
+          {isLoggedIn ? (
+            <FormattedMessage id="portal.header.diafane.app" defaultMessage="Open the app" />
+          ) : (
+            <FormattedMessage
+              id="portal.header.diafane.discover"
+              defaultMessage="Discover Diafane"
+            />
+          )}
+        </a>
+      </Button>
+
       {/* Notification Bell (logged in users only) */}
       {isLoggedIn && <NotificationBell popoverSide="bottom" className="me-1" />}
 
-      {/* Auth Buttons */}
-      {isLoggedIn ? (
+      {/*
+        ⚠️ L'AVATAR NE PARAIT QUE POUR L'EQUIPE (Seb 2026-09-23 : « pour mes users
+        (pas l'admin), l'avatar devrait etre celui de diafane avec les memes
+        fonctions ou ne pas etre affiche »). Le premier n'est pas possible : le
+        portail vit sur un autre domaine et ne connait pas la session Diafane.
+        Reste le second, et il coute peu : un compte de portail n'est jamais
+        choisi, il est cree par le jeton signe que le widget envoie depuis
+        l'application, et le nom qu'il affiche vient de la meme source. Le menu
+        de compte ne servait donc qu'a se deconnecter d'un compte qu'on ne s'est
+        pas cree. `/settings` reste joignable par son adresse.
+      */}
+      {isLoggedIn && canAccessAdmin ? (
         // Logged-in user - show user dropdown
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -321,27 +351,22 @@ export function PortalHeader({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      ) : openAuthPopover && portalAuthEnabled ? (
-        // Anonymous user with auth popover available - show login/signup buttons
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              soleOidcProviderId ? redirectToSoleProvider() : openAuthPopover({ mode: 'login' })
-            }
-          >
-            <FormattedMessage id="portal.header.auth.logIn" defaultMessage="Log in" />
-          </Button>
-          <Button
-            size="sm"
-            onClick={() =>
-              soleOidcProviderId ? redirectToSoleProvider() : openAuthPopover({ mode: 'signup' })
-            }
-          >
-            <FormattedMessage id="portal.header.auth.signUp" defaultMessage="Sign up" />
-          </Button>
-        </div>
+      ) : !isLoggedIn && openAuthPopover && portalAuthEnabled ? (
+        // ⚠️ `!isLoggedIn` EST INDISPENSABLE depuis que la branche du dessus
+        // exige AUSSI `canAccessAdmin` : sans lui, un utilisateur connecte qui
+        // n'est pas de l'equipe tomberait ici et se verrait proposer de se
+        // connecter alors qu'il l'est deja.
+        // Visiteur : « Log in » discret, comme sur la vitrine, le bouton dore
+        // juste avant tenant le role de l'appel a l'action.
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() =>
+            soleOidcProviderId ? redirectToSoleProvider() : openAuthPopover({ mode: 'login' })
+          }
+        >
+          <FormattedMessage id="portal.header.auth.logIn" defaultMessage="Log in" />
+        </Button>
       ) : null}
     </div>
   )
