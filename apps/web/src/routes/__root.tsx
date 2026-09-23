@@ -125,11 +125,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content: 'width=device-width, initial-scale=1, viewport-fit=cover',
       },
       {
-        title: 'Quackback',
+        // Ce titre ne sert que HORS du portail (l'ecran de connexion, les pages
+        // d'erreur) : `_portal.tsx` pose le nom de l'espace partout ailleurs.
+        // C'est la qu'on lisait « Quackback » dans l'onglet du navigateur.
+        title: 'Diafane',
       },
       {
         name: 'description',
-        content: 'Open-source customer feedback platform',
+        content: 'Aide et idees pour Diafane, le logiciel de conception de vitraux.',
       },
       {
         property: 'og:type',
@@ -145,6 +148,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         rel: 'stylesheet',
         href: appCss,
       },
+      { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+      { rel: 'icon', type: 'image/png', sizes: '96x96', href: '/favicon-96x96.png' },
+      { rel: 'icon', href: '/favicon.ico' },
+      { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
       {
         rel: 'alternate',
         type: 'application/rss+xml',
