@@ -90,9 +90,13 @@ const loggedInSession = {
 function renderHeader({
   userRole,
   isLoggedIn,
+  locale = 'en',
+  messages,
 }: {
   userRole?: 'admin' | 'member' | 'user' | null
   isLoggedIn: boolean
+  locale?: string
+  messages?: Record<string, string>
 }) {
   mockGetRouteContext.mockReturnValue({
     session: isLoggedIn ? loggedInSession : null,
@@ -101,7 +105,7 @@ function renderHeader({
   })
 
   return render(
-    <IntlProvider locale="en" defaultLocale="en">
+    <IntlProvider locale={locale} defaultLocale="en" messages={messages}>
       {/* showThemeToggle=false removes the theme dropdown trigger so the only
           remaining button is the avatar / user-dropdown trigger */}
       <PortalHeader orgName="Acme" userRole={userRole} showThemeToggle={false} />
@@ -132,6 +136,36 @@ describe('PortalHeader — Admin dropdown item', () => {
     // c'est un lien.
     expect(screen.queryByRole('button')).toBeNull()
     expect(screen.queryByRole('menuitem')).toBeNull()
+  })
+})
+
+// ⭐ LA BARRE PARLE LA LANGUE DU VISITEUR, MES AJOUTS COMPRIS.
+// Le portail resout sa langue depuis `Accept-Language` et traduit toute sa
+// barre. Le nom de la surface a d'abord vecu dans un `::after` de la feuille
+// d'habillage, donc en anglais pour tout le monde : « je vois "Help and ideas"
+// dans feedback et "Aide et idees" dans les guides » (Seb 2026-09-23). Ces
+// deux tests refusent le retour d'une etiquette ecrite en dur.
+describe('PortalHeader — la langue de la barre', () => {
+  afterEach(() => cleanup())
+
+  it('names the surface next to the wordmark', () => {
+    renderHeader({ userRole: null, isLoggedIn: false })
+    expect(screen.getByText('Help and ideas')).toBeInTheDocument()
+  })
+
+  it('translates the surface name and the Diafane button', () => {
+    renderHeader({
+      userRole: null,
+      isLoggedIn: false,
+      locale: 'fr',
+      messages: {
+        'portal.header.surface': 'Aide et idées',
+        'portal.header.diafane.discover': 'Découvrir Diafane',
+      },
+    })
+    expect(screen.getByText('Aide et idées')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /découvrir diafane/i })).toBeInTheDocument()
+    expect(screen.queryByText('Help and ideas')).toBeNull()
   })
 })
 
