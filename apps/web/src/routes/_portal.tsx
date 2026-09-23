@@ -1,5 +1,4 @@
 import { createFileRoute, redirect, Outlet } from '@tanstack/react-router'
-import { fetchUserAvatar } from '@/lib/server/functions/portal'
 import { PortalHeader } from '@/components/public/portal-header'
 import { AuthPopoverProvider } from '@/components/auth/auth-popover-context'
 import { AuthDialog } from '@/components/auth/auth-dialog'
@@ -137,13 +136,6 @@ export const Route = createFileRoute('/_portal')({
       if (instant) throw redirect({ href: instant.url })
     }
 
-    // userRole comes from bootstrap data, avatar needs to be fetched
-    const avatarData = session?.user
-      ? await fetchUserAvatar({
-          data: { userId: session.user.id, fallbackImageUrl: session.user.image },
-        })
-      : null
-
     const brandingData = settings?.brandingData ?? null
     const faviconData = settings?.faviconData ?? null
     const brandingConfig = settings?.brandingConfig ?? {}
@@ -158,14 +150,6 @@ export const Route = createFileRoute('/_portal')({
 
     // Always apply custom CSS on top (cascades over theme styles)
     const customCssToApply = customCss
-
-    const initialUserData = session?.user
-      ? {
-          name: session.user.name,
-          email: session.user.email,
-          avatarUrl: avatarData?.avatarUrl ?? null,
-        }
-      : undefined
 
     const authConfig = {
       found: true,
@@ -187,7 +171,6 @@ export const Route = createFileRoute('/_portal')({
       themeStyles,
       customCss: customCssToApply,
       themeMode,
-      initialUserData,
       authConfig,
       locale,
       messages,
@@ -264,7 +247,6 @@ function PortalLayout() {
     themeStyles,
     customCss,
     themeMode,
-    initialUserData,
     authConfig,
     locale,
     messages,
@@ -290,7 +272,6 @@ function PortalLayout() {
             orgName={org.name}
             orgLogo={brandingData?.logoUrl ?? null}
             userRole={userRole}
-            initialUserData={initialUserData}
             showThemeToggle={themeMode === 'user'}
           />
           <main className="flex-1 w-full flex flex-col">
