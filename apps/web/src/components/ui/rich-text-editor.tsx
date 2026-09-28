@@ -48,6 +48,7 @@ import {
   safePositiveInt,
   extractYoutubeId,
 } from '@/lib/shared/utils/sanitize'
+import { normaliserLien } from '@/lib/shared/utils/normaliser-lien'
 import {
   Bold,
   Italic,
@@ -1650,8 +1651,12 @@ function LinkButton({ editor, disabled }: { editor: Editor; disabled: boolean })
     if (!url.trim()) {
       editor.chain().focus().extendMarkRange('link').unsetLink().run()
     } else {
-      const finalUrl = /^https?:\/\//i.test(url) ? url : `https://${url}`
-      editor.chain().focus().extendMarkRange('link').setLink({ href: finalUrl }).run()
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange('link')
+        .setLink({ href: normaliserLien(url) })
+        .run()
     }
     setIsOpen(false)
   }
@@ -2003,7 +2008,7 @@ interface MenuBarProps {
 function MenuBar({ editor, disabled, features = {}, onImageUpload }: MenuBarProps) {
   const setLink = useCallback(() => {
     const previousUrl = editor.getAttributes('link').href
-    let url = window.prompt('URL', previousUrl)
+    const url = window.prompt('URL', previousUrl)
 
     if (url === null) return
 
@@ -2012,11 +2017,12 @@ function MenuBar({ editor, disabled, features = {}, onImageUpload }: MenuBarProp
       return
     }
 
-    if (!/^https?:\/\//i.test(url)) {
-      url = `https://${url}`
-    }
-
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange('link')
+      .setLink({ href: normaliserLien(url) })
+      .run()
   }, [editor])
 
   const insertImage = useCallback(() => {
