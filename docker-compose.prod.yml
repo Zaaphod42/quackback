@@ -152,7 +152,16 @@ services:
   # set a public download policy — the bucket stays private and is served
   # through the app's /api/storage proxy (S3_PROXY=true above).
   minio-init:
-    image: quay.io/minio/mc:${MC_IMAGE_TAG:-RELEASE.2025-04-16T18-13-26Z}
+    # ⚠️ LA MEME IMAGE QUE LE SERVICE `minio`, ET NON `quay.io/minio/mc`.
+    # MinIO ne sert plus ses images sans authentification : Docker Hub les a
+    # retirees a la mi-septembre 2026, et quay.io repond 401 depuis le
+    # 2026-09-28 pour `minio/mc` comme pour `minio/minio`. Un deploiement qui
+    # devait tirer `mc` a donc echoue, APRES avoir retire les anciens
+    # conteneurs : le portail est reste arrete. L'image du serveur porte deja
+    # le binaire `mc` (sa sonde de sante l'appelle) ; elle est presente sur la
+    # machine puisque le serveur tourne, et reprendre EXACTEMENT sa reference,
+    # etiquette comprise, evite tout nouveau tirage.
+    image: quay.io/minio/minio:${MINIO_IMAGE_TAG:-RELEASE.2025-04-22T22-12-26Z}
     container_name: quackback-minio-init
     depends_on:
       minio:
