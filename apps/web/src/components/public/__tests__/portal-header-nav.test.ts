@@ -25,8 +25,10 @@ describe('buildNavItems', () => {
     expect(items.map(cible)).toEqual(['https://diafane.com/en/aide', '/', '/hc', '/support'])
   })
 
-  // Elles etaient masquees par la feuille d'habillage, donc vivantes et
-  // atteignables en tapant l'adresse. Les retirer ici est ce qui les ferme.
+  // Elles etaient masquees par la feuille d'habillage. Les retirer ici ne
+  // ferme PAS leurs pages, qui restaient servies a qui tapait l'adresse :
+  // `/changelog` est ferme par sa redirection (`nouveautes-du-portail.ts`),
+  // `/roadmap` reste servie.
   it('carries neither Roadmap nor Changelog', () => {
     const items = buildNavItems({ helpCenterEnabled: true, supportEnabled: true })
     expect(items.map(cible)).not.toContain('/roadmap')

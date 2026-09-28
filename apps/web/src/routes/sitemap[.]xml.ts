@@ -48,37 +48,18 @@ export const Route = createFileRoute('/sitemap.xml')({
 })
 
 async function collectUrls(baseUrl: string): Promise<SitemapUrl[]> {
-  const [
-    { db, changelogEntries, and, desc, eq, sql },
-    { publicChangelogConditions },
-    { toIsoDateOnly },
-  ] = await Promise.all([
+  const [{ db, eq }, { toIsoDateOnly }] = await Promise.all([
     import('@/lib/server/db'),
-    import('@/lib/server/domains/changelog/changelog.public'),
     import('@/lib/shared/utils/date'),
   ])
 
-  const effectiveDisplayDate = sql<Date>`coalesce(${changelogEntries.displayDate}, ${changelogEntries.publishedAt})`
-
   const urls: SitemapUrl[] = []
 
-  // Static pages
+  // Static pages. Ni la page des nouveautés ni ses entrées : ces adresses
+  // renvoient aux idées réalisées (`nouveautes-du-portail.ts`), et un sitemap
+  // ne liste pas une redirection.
   urls.push({ loc: baseUrl })
   urls.push({ loc: `${baseUrl}/roadmap` })
-  urls.push({ loc: `${baseUrl}/changelog` })
-
-  const entries = await db
-    .select({ id: changelogEntries.id, updatedAt: changelogEntries.updatedAt })
-    .from(changelogEntries)
-    .where(and(...publicChangelogConditions(new Date())))
-    .orderBy(desc(effectiveDisplayDate))
-
-  for (const entry of entries) {
-    urls.push({
-      loc: `${baseUrl}/changelog/${entry.id}`,
-      lastmod: toIsoDateOnly(entry.updatedAt),
-    })
-  }
 
   // Published, non-merged posts on public, non-deleted boards.
   // Sitemap is anonymous-public by definition — only boards whose view

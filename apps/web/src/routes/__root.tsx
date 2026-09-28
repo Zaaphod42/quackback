@@ -152,12 +152,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { rel: 'icon', type: 'image/png', sizes: '96x96', href: '/favicon-96x96.png' },
       { rel: 'icon', href: '/favicon.ico' },
       { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
-      {
-        rel: 'alternate',
-        type: 'application/rss+xml',
-        title: 'Changelog RSS Feed',
-        href: '/changelog/feed',
-      },
+      // Pas de flux des nouveautés annoncé : voir `nouveautes-du-portail.ts`.
     ],
   }),
   component: RootComponent,
