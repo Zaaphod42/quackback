@@ -60,6 +60,7 @@ const FILTER_EVENT_TYPES: FilterEventOption[] = [
   { label: 'Email sign-in enabled', value: 'auth.magic_link.enabled' },
   { label: 'Email sign-in disabled', value: 'auth.magic_link.disabled' },
   { label: 'Two-factor reset by admin', value: 'two_factor.reset_by_admin' },
+  { label: 'Admin link minted for Diafane', value: 'auth.diafane_admin_link.minted' },
   // Portal events
   {
     group: 'Portal',
