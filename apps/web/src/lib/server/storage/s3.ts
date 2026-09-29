@@ -96,14 +96,42 @@ interface S3ClientInstance {
   destroy(): void
 }
 
+/** Ce que le module passe au constructeur de `S3Client`. */
+export interface S3ClientOptions {
+  region: string
+  endpoint?: string
+  forcePathStyle: boolean
+  credentials: { accessKeyId: string; secretAccessKey: string }
+  requestChecksumCalculation: 'WHEN_REQUIRED' | 'WHEN_SUPPORTED'
+  responseChecksumValidation: 'WHEN_REQUIRED' | 'WHEN_SUPPORTED'
+}
+
+/**
+ * ⭐ LES OPTIONS DU CLIENT S3, dont les sommes de controle a `WHEN_REQUIRED`.
+ *
+ * Depuis la 3.729 du SDK, chaque envoi porte par defaut une somme CRC32
+ * (`x-amz-checksum-crc32`), que plusieurs stockages compatibles S3 ne savent
+ * pas lire et refusent. `WHEN_REQUIRED` ne l'envoie que la ou l'operation
+ * l'exige, ce qui ne change rien pour Amazon et garde le portail compatible
+ * avec le stockage objet qu'il utilise (Scaleway depuis le 2026-09-28).
+ */
+export function optionsClientS3(s3Config: S3Config): S3ClientOptions {
+  return {
+    region: s3Config.region,
+    endpoint: s3Config.endpoint,
+    forcePathStyle: s3Config.forcePathStyle,
+    credentials: {
+      accessKeyId: s3Config.accessKeyId,
+      secretAccessKey: s3Config.secretAccessKey,
+    },
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
+  }
+}
+
 /** Typed subset of @aws-sdk/client-s3 exports used by this module. */
 interface S3Module {
-  S3Client: new (config: {
-    region: string
-    endpoint?: string
-    forcePathStyle: boolean
-    credentials: { accessKeyId: string; secretAccessKey: string }
-  }) => S3ClientInstance
+  S3Client: new (config: S3ClientOptions) => S3ClientInstance
   PutObjectCommand: new (input: BucketKeyInput) => S3Command
   GetObjectCommand: new (input: BucketKeyInput) => S3Command
   DeleteObjectCommand: new (input: BucketKeyInput) => S3Command
@@ -152,15 +180,7 @@ async function getS3Client(): Promise<S3ClientInstance> {
   const s3Config = getS3Config()
   const { S3Client } = await getS3Module()
 
-  _s3Client = new S3Client({
-    region: s3Config.region,
-    endpoint: s3Config.endpoint,
-    forcePathStyle: s3Config.forcePathStyle,
-    credentials: {
-      accessKeyId: s3Config.accessKeyId,
-      secretAccessKey: s3Config.secretAccessKey,
-    },
-  })
+  _s3Client = new S3Client(optionsClientS3(s3Config))
 
   return _s3Client
 }
