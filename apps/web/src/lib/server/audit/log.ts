@@ -94,6 +94,8 @@ export type AuditEventType =
   // v1 audit-log observability
   | 'portal.access.denied' // OWASP authz_fail — gate denied an authenticated visitor
   | 'auth.signin.failed' // OWASP authn_login_fail — twin of auth.signin.success
+  // Diafane : le lien d'administration demandé par le serveur de Diafane (lien-admin-diafane.ts)
+  | 'auth.diafane_admin_link.minted'
   | 'portal.invite.expired' // emitted by the daily sweep for pending invites past their expiry
 
 export type AuditEventOutcome = 'success' | 'failure'
