@@ -445,5 +445,20 @@
   "portal.hc.contactSupport.body": "与我们的团队发起对话，我们会尽快回复你。",
   "portal.hc.contactSupport.cta": "联系支持",
   "portal.hc.articleFeedback.stillStuck": "还没解决？",
-  "portal.hc.articleFeedback.contactSupport": "联系支持"
+  "portal.hc.articleFeedback.contactSupport": "联系支持",
+  "portal.errorPage.notFound.title": "此页面",
+  "portal.errorPage.notFound.titleGold": "未找到。",
+  "portal.errorPage.notFound.lead": "链接可能不完整，或页面已被移动。",
+  "portal.errorPage.error.title": "出现了",
+  "portal.errorPage.error.titleGold": "错误。",
+  "portal.errorPage.error.lead": "请稍后重试。",
+  "portal.errorPage.denied.title": "访问",
+  "portal.errorPage.denied.titleGold": "受限。",
+  "portal.errorPage.denied.lead": "此页面仅对部分账户开放。如果您认为自己应有访问权限，请联系我们。",
+  "portal.errorPage.links.ideas": "查看想法",
+  "portal.errorPage.links.guides": "浏览指南",
+  "portal.errorPage.links.contact": "联系我们",
+  "portal.errorPage.links.retry": "重试",
+  "portal.errorPage.links.home": "返回首页",
+  "portal.errorPage.technicalDetails": "技术详情"
 }

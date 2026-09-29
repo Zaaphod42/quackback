@@ -445,5 +445,20 @@
   "portal.hc.contactSupport.body": "Начните переписку с нашей командой, и мы вам ответим.",
   "portal.hc.contactSupport.cta": "Связаться с поддержкой",
   "portal.hc.articleFeedback.stillStuck": "Все еще не получается?",
-  "portal.hc.articleFeedback.contactSupport": "Связаться с поддержкой"
+  "portal.hc.articleFeedback.contactSupport": "Связаться с поддержкой",
+  "portal.errorPage.notFound.title": "Эта страница",
+  "portal.errorPage.notFound.titleGold": "не найдена.",
+  "portal.errorPage.notFound.lead": "Возможно, ссылка неполная или страница была перемещена.",
+  "portal.errorPage.error.title": "Что-то",
+  "portal.errorPage.error.titleGold": "пошло не так.",
+  "portal.errorPage.error.lead": "Попробуйте ещё раз через мгновение.",
+  "portal.errorPage.denied.title": "Доступ",
+  "portal.errorPage.denied.titleGold": "ограничен.",
+  "portal.errorPage.denied.lead": "Эта страница доступна только некоторым учётным записям. Если вы считаете, что у вас должен быть доступ, напишите нам.",
+  "portal.errorPage.links.ideas": "Посмотреть идеи",
+  "portal.errorPage.links.guides": "Открыть руководства",
+  "portal.errorPage.links.contact": "Написать нам",
+  "portal.errorPage.links.retry": "Повторить",
+  "portal.errorPage.links.home": "Вернуться на главную",
+  "portal.errorPage.technicalDetails": "Технические подробности"
 }

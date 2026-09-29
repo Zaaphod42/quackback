@@ -445,5 +445,20 @@
   "portal.hc.contactSupport.body": "ابدأ محادثة مع فريقنا وسنرد عليك.",
   "portal.hc.contactSupport.cta": "تواصل مع الدعم",
   "portal.hc.articleFeedback.stillStuck": "ما زلت عالقًا؟",
-  "portal.hc.articleFeedback.contactSupport": "تواصل مع الدعم"
+  "portal.hc.articleFeedback.contactSupport": "تواصل مع الدعم",
+  "portal.errorPage.notFound.title": "هذه الصفحة",
+  "portal.errorPage.notFound.titleGold": "غير موجودة.",
+  "portal.errorPage.notFound.lead": "قد يكون الرابط غير مكتمل، أو ربما نُقلت الصفحة.",
+  "portal.errorPage.error.title": "حدث",
+  "portal.errorPage.error.titleGold": "خطأ ما.",
+  "portal.errorPage.error.lead": "يُرجى المحاولة مرة أخرى بعد لحظات.",
+  "portal.errorPage.denied.title": "الوصول",
+  "portal.errorPage.denied.titleGold": "مقيّد.",
+  "portal.errorPage.denied.lead": "هذه الصفحة مخصصة لبعض الحسابات فقط. إن كنت تعتقد أنه يحق لك الوصول، راسلنا.",
+  "portal.errorPage.links.ideas": "عرض الأفكار",
+  "portal.errorPage.links.guides": "تصفّح الأدلة",
+  "portal.errorPage.links.contact": "راسلنا",
+  "portal.errorPage.links.retry": "إعادة المحاولة",
+  "portal.errorPage.links.home": "العودة إلى الصفحة الرئيسية",
+  "portal.errorPage.technicalDetails": "التفاصيل التقنية"
 }

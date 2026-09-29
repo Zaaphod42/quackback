@@ -445,5 +445,20 @@
   "portal.hc.contactSupport.body": "Start a conversation with our team and we'll get back to you.",
   "portal.hc.contactSupport.cta": "Contact support",
   "portal.hc.articleFeedback.stillStuck": "Still stuck?",
-  "portal.hc.articleFeedback.contactSupport": "Contact support"
+  "portal.hc.articleFeedback.contactSupport": "Contact support",
+  "portal.errorPage.notFound.title": "This page",
+  "portal.errorPage.notFound.titleGold": "could not be found.",
+  "portal.errorPage.notFound.lead": "The link may be incomplete, or the page may have moved.",
+  "portal.errorPage.error.title": "Something",
+  "portal.errorPage.error.titleGold": "went wrong.",
+  "portal.errorPage.error.lead": "Please try again in a moment.",
+  "portal.errorPage.denied.title": "Access",
+  "portal.errorPage.denied.titleGold": "restricted.",
+  "portal.errorPage.denied.lead": "This page is limited to certain accounts. If you think you should have access, let us know.",
+  "portal.errorPage.links.ideas": "See the ideas",
+  "portal.errorPage.links.guides": "Browse the guides",
+  "portal.errorPage.links.contact": "Contact us",
+  "portal.errorPage.links.retry": "Try again",
+  "portal.errorPage.links.home": "Back to the home page",
+  "portal.errorPage.technicalDetails": "Technical details"
 }

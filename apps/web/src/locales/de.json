@@ -445,5 +445,20 @@
   "portal.hc.contactSupport.body": "Starten Sie eine Unterhaltung mit unserem Team und wir melden uns bei Ihnen.",
   "portal.hc.contactSupport.cta": "Support kontaktieren",
   "portal.hc.articleFeedback.stillStuck": "Kommen Sie nicht weiter?",
-  "portal.hc.articleFeedback.contactSupport": "Support kontaktieren"
+  "portal.hc.articleFeedback.contactSupport": "Support kontaktieren",
+  "portal.errorPage.notFound.title": "Diese Seite",
+  "portal.errorPage.notFound.titleGold": "wurde nicht gefunden.",
+  "portal.errorPage.notFound.lead": "Der Link ist möglicherweise unvollständig, oder die Seite wurde verschoben.",
+  "portal.errorPage.error.title": "Ein Fehler",
+  "portal.errorPage.error.titleGold": "ist aufgetreten.",
+  "portal.errorPage.error.lead": "Bitte versuchen Sie es gleich noch einmal.",
+  "portal.errorPage.denied.title": "Zugang",
+  "portal.errorPage.denied.titleGold": "eingeschränkt.",
+  "portal.errorPage.denied.lead": "Diese Seite ist bestimmten Konten vorbehalten. Wenn Sie der Meinung sind, Zugang haben zu müssen, schreiben Sie uns.",
+  "portal.errorPage.links.ideas": "Ideen ansehen",
+  "portal.errorPage.links.guides": "Anleitungen ansehen",
+  "portal.errorPage.links.contact": "Schreiben Sie uns",
+  "portal.errorPage.links.retry": "Erneut versuchen",
+  "portal.errorPage.links.home": "Zur Startseite",
+  "portal.errorPage.technicalDetails": "Technische Details"
 }
