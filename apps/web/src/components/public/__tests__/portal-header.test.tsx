@@ -76,6 +76,7 @@ vi.mock('@/components/shared/user-stats', () => ({
 }))
 
 import { PortalHeader } from '../portal-header'
+import { DIAFANE } from '../portal-header-nav'
 
 const loggedInSession = {
   user: {
@@ -172,6 +173,66 @@ describe('PortalHeader — la langue de la barre', () => {
     expect(screen.getByText('Aide et idées')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /découvrir diafane/i })).toBeInTheDocument()
     expect(screen.queryByText('Help and ideas')).toBeNull()
+  })
+})
+
+// ⭐ LE MOT ET LE NOM DE LA SURFACE SONT DEUX LIENS (Seb 2026-09-30 : « quand on
+// clique sur "aide et idees" dans le fil d'Ariane du header ca doit retourner a
+// aide et idees et le logo doit retourner a la home de diafane »). C'etait UN
+// SEUL lien, vers l'accueil du portail : le mot « diafane » et « / Help and
+// ideas » menaient au meme endroit. Sur les pages publiques de Diafane
+// (`BarreVitrine.vue`), le mot mene a l'accueil du site et le nom de la
+// surface au sommaire de l'aide : le portail fait maintenant pareil.
+describe('PortalHeader — le mot et le nom de la surface', () => {
+  afterEach(() => cleanup())
+
+  it('sends the wordmark to the Diafane home page, not to the portal home', () => {
+    renderHeader({ userRole: null, isLoggedIn: false })
+    expect(screen.getByRole('link', { name: 'Acme' })).toHaveAttribute('href', DIAFANE.accueil)
+  })
+
+  it('sends the surface name to the help and ideas hub', () => {
+    renderHeader({ userRole: null, isLoggedIn: false })
+    expect(screen.getByRole('link', { name: /help and ideas/i })).toHaveAttribute(
+      'href',
+      DIAFANE.guides
+    )
+  })
+
+  it('keeps the translated surface name as the link label', () => {
+    renderHeader({
+      userRole: null,
+      isLoggedIn: false,
+      locale: 'fr',
+      messages: { 'portal.header.surface': 'Aide et idées' },
+    })
+    expect(screen.getByRole('link', { name: /aide et idées/i })).toHaveAttribute(
+      'href',
+      DIAFANE.guides
+    )
+  })
+
+  // Un lien ne peut pas en contenir un autre : c'est ce qui interdit de garder
+  // le conteneur en lien et d'y poser les deux.
+  it('never nests one link inside another', () => {
+    const { container } = renderHeader({ userRole: null, isLoggedIn: false })
+    expect(container.querySelectorAll('a a')).toHaveLength(0)
+  })
+
+  // ⚠️ LA FEUILLE D'HABILLAGE (Settings › Branding › Theme CSS, collee a la main)
+  // VISE CE BALISAGE : `.portal-header__logo` porte l'ordre et la ligne de base
+  // de la rangee, `.portal-header__logo + div` est le bloc du compte, et
+  // `.portal-header__logo > div.bg-primary` masque l'initiale (enfant DIRECT).
+  // Changer l'un de ces trois liens de parente obligerait a recoller la feuille.
+  it('keeps the markup the theme stylesheet targets', () => {
+    const { container } = renderHeader({ userRole: null, isLoggedIn: false })
+    const logo = container.querySelector('.portal-header__logo')
+    expect(logo).not.toBeNull()
+    expect(logo?.tagName).toBe('DIV')
+    expect(logo?.nextElementSibling?.tagName).toBe('DIV')
+    expect(logo?.querySelector('.portal-header__name')).not.toBeNull()
+    expect(logo?.querySelector('.portal-header__surface')).not.toBeNull()
+    expect(logo?.querySelector(':scope > div.bg-primary')).not.toBeNull()
   })
 })
 
