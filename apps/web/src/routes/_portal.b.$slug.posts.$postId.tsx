@@ -19,6 +19,8 @@ import {
 import { DeletePostDialog } from '@/components/public/post-detail/delete-post-dialog'
 import { usePostPermissions, postPermissionsKeys } from '@/lib/client/hooks/use-portal-posts-query'
 import { getPostPermissionsFn } from '@/lib/server/functions/public-posts'
+import { fetchPublicPostDetail } from '@/lib/server/functions/portal'
+import { chargerOuIntrouvable } from '@/lib/shared/idee-introuvable'
 import { usePostActions } from '@/lib/client/mutations'
 import { usePortalImageUpload } from '@/lib/client/hooks/use-image-upload'
 import {
@@ -55,17 +57,23 @@ export const Route = createFileRoute('/_portal/b/$slug/posts/$postId')({
     // commentsSectionData and post permissions are warmed here (not fire-and-forget)
     // so the comments section and edit/delete controls render their real values on
     // first paint instead of flashing the undefined defaults (canComment/canEdit/canDelete).
-    const [post] = await Promise.all([
-      queryClient.ensureQueryData(portalDetailQueries.postDetail(postId)),
-      queryClient.ensureQueryData(portalQueries.statuses()),
-      queryClient.ensureQueryData(portalDetailQueries.votedPosts()),
-      queryClient.ensureQueryData(portalDetailQueries.commentsSectionData(postId)),
-      queryClient.ensureQueryData({
-        queryKey: postPermissionsKeys.detail(postId),
-        queryFn: () => getPostPermissionsFn({ data: { postId } }),
-        staleTime: 30_000,
-      }),
-    ])
+    // Diafane : une idée absente sort en page introuvable, pas en 500
+    // (`idee-introuvable.ts` dit pourquoi le `notFound()` plus bas ne suffit pas).
+    const [post] = await chargerOuIntrouvable(
+      () =>
+        Promise.all([
+          queryClient.ensureQueryData(portalDetailQueries.postDetail(postId)),
+          queryClient.ensureQueryData(portalQueries.statuses()),
+          queryClient.ensureQueryData(portalDetailQueries.votedPosts()),
+          queryClient.ensureQueryData(portalDetailQueries.commentsSectionData(postId)),
+          queryClient.ensureQueryData({
+            queryKey: postPermissionsKeys.detail(postId),
+            queryFn: () => getPostPermissionsFn({ data: { postId } }),
+            staleTime: 30_000,
+          }),
+        ]),
+      async () => (await fetchPublicPostDetail({ data: { postId } })) !== null
+    )
 
     if (!post || post.board.slug !== slug) {
       throw notFound()

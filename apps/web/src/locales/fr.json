@@ -445,5 +445,20 @@
   "portal.hc.contactSupport.body": "Démarrez une conversation avec notre équipe et nous vous répondrons.",
   "portal.hc.contactSupport.cta": "Contacter le support",
   "portal.hc.articleFeedback.stillStuck": "Toujours bloqué ?",
-  "portal.hc.articleFeedback.contactSupport": "Contacter le support"
+  "portal.hc.articleFeedback.contactSupport": "Contacter le support",
+  "portal.errorPage.notFound.title": "Cette page",
+  "portal.errorPage.notFound.titleGold": "est introuvable.",
+  "portal.errorPage.notFound.lead": "Le lien est peut-être incomplet, ou la page a été déplacée.",
+  "portal.errorPage.error.title": "Une erreur",
+  "portal.errorPage.error.titleGold": "est survenue.",
+  "portal.errorPage.error.lead": "Réessayez dans un instant.",
+  "portal.errorPage.denied.title": "Accès",
+  "portal.errorPage.denied.titleGold": "réservé.",
+  "portal.errorPage.denied.lead": "Cette page est réservée à certains comptes. Si vous pensez y avoir droit, écrivez-nous.",
+  "portal.errorPage.links.ideas": "Voir les idées",
+  "portal.errorPage.links.guides": "Voir les guides",
+  "portal.errorPage.links.contact": "Nous écrire",
+  "portal.errorPage.links.retry": "Réessayer",
+  "portal.errorPage.links.home": "Revenir à l’accueil",
+  "portal.errorPage.technicalDetails": "Détails techniques"
 }

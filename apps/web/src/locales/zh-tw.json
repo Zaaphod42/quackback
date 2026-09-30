@@ -445,5 +445,20 @@
   "portal.hc.contactSupport.body": "與我們的團隊開始對話，我們會盡快回覆你。",
   "portal.hc.contactSupport.cta": "聯絡支援",
   "portal.hc.articleFeedback.stillStuck": "還有問題嗎？",
-  "portal.hc.articleFeedback.contactSupport": "聯絡支援"
+  "portal.hc.articleFeedback.contactSupport": "聯絡支援",
+  "portal.errorPage.notFound.title": "此頁面",
+  "portal.errorPage.notFound.titleGold": "找不到。",
+  "portal.errorPage.notFound.lead": "連結可能不完整，或頁面已被移動。",
+  "portal.errorPage.error.title": "發生了",
+  "portal.errorPage.error.titleGold": "錯誤。",
+  "portal.errorPage.error.lead": "請稍後再試。",
+  "portal.errorPage.denied.title": "存取",
+  "portal.errorPage.denied.titleGold": "受限。",
+  "portal.errorPage.denied.lead": "此頁面僅供部分帳戶使用。如果您認為應有存取權限，請與我們聯絡。",
+  "portal.errorPage.links.ideas": "查看想法",
+  "portal.errorPage.links.guides": "瀏覽指南",
+  "portal.errorPage.links.contact": "聯絡我們",
+  "portal.errorPage.links.retry": "重試",
+  "portal.errorPage.links.home": "返回首頁",
+  "portal.errorPage.technicalDetails": "技術詳細資訊"
 }
