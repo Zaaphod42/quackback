@@ -312,7 +312,29 @@ export function PortalHeader({
       <div>
         <div className="max-w-6xl mx-auto w-full px-4 sm:px-6">
           <div className="flex h-12 items-center justify-between">
-            <Link to="/" className="portal-header__logo flex items-center gap-2">
+            {/*
+              ⭐ LE MOT ET LE NOM DE LA SURFACE SONT DEUX LIENS (Seb 2026-09-30 :
+              « quand on clique sur "aide et idees" dans le fil d'Ariane du header
+              ca doit retourner a aide et idees et le logo doit retourner a la home
+              de diafane »).
+
+              C'etait UN SEUL lien, vers l'accueil du portail : « diafane » et
+              « / Help and ideas » menaient au meme endroit. Sur les pages publiques
+              de Diafane (`Components/Vitrine3/BarreVitrine.vue`), le mot mene a
+              l'accueil du site et le nom de la surface au sommaire de l'aide ; le
+              portail fait maintenant pareil. Ce sont des `<a>` : on sort du portail,
+              et la meme adresse que le bouton « Guides » sert le nom de la surface.
+
+              ⚠️ LE CONTENEUR N'EST PLUS UN LIEN, ET GARDE SA CLASSE. La feuille
+              d'habillage (Settings › Branding › Theme CSS, collee a la main dans le
+              portail) vise ce balisage : `.portal-header__logo` porte l'ordre et la
+              ligne de base de la rangee, `.portal-header__logo + div` est le bloc du
+              compte, `.portal-header__logo > div.bg-primary` masque l'initiale (enfant
+              DIRECT, donc elle reste hors du lien). Le mot est enveloppe par son lien
+              plutot que d'en devenir un : une regle `.portal-header a` peindrait sinon
+              le mot en gris, alors qu'il porte sa propre encre.
+            */}
+            <div className="portal-header__logo flex items-center gap-2">
               {orgLogo ? (
                 <img
                   src={orgLogo}
@@ -324,9 +346,11 @@ export function PortalHeader({
                   {orgName.charAt(0).toUpperCase()}
                 </div>
               )}
-              <span className="portal-header__name font-semibold hidden sm:block max-w-[18ch] line-clamp-2 text-[var(--header-foreground)]">
-                {orgName}
-              </span>
+              <a href={DIAFANE.accueil} className="portal-header__home">
+                <span className="portal-header__name font-semibold hidden sm:block max-w-[18ch] line-clamp-2 text-[var(--header-foreground)]">
+                  {orgName}
+                </span>
+              </a>
               {/*
                 ⭐ LE NOM DE LA SURFACE, a droite du mot, comme sur les pages
                 publiques de Diafane (`Components/Vitrine3/BarreVitrine.vue`).
@@ -337,11 +361,11 @@ export function PortalHeader({
                 traduit (le portail resout la langue depuis `Accept-Language`).
                 Une regle de style ne sait pas traduire ; ceci si.
               */}
-              <span className="portal-header__surface">
+              <a href={DIAFANE.guides} className="portal-header__surface">
                 <span aria-hidden="true">/</span>
                 <FormattedMessage id="portal.header.surface" defaultMessage="Help and ideas" />
-              </span>
-            </Link>
+              </a>
+            </div>
             <AuthButtons />
           </div>
         </div>
