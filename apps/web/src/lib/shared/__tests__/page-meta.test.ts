@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { pageMeta } from '../page-meta'
+import { pageMeta, matchLocale } from '../page-meta'
 import { SUPPORTED_LOCALES } from '../i18n'
 
 const DIAFANE_LOCALES = ['en', 'fr', 'de', 'es', 'it', 'nl'] as const
@@ -48,5 +48,63 @@ describe('pageMeta', () => {
         expect(text, locale).not.toContain('—')
       }
     }
+  })
+})
+
+describe('pageMeta: ideas list, roadmap and idea pages', () => {
+  it('titles the ideas list and describes it in the visitor language', () => {
+    expect(pageMeta('en').feedbackTitle('Diafane')).toBe('Feedback - Diafane')
+    expect(pageMeta('nl').feedbackDescription('Diafane')).toContain(
+      'functieverzoeken in voor Diafane'
+    )
+    expect(pageMeta('it').feedbackDescription('Diafane')).toContain('funzioni per Diafane')
+    expect(pageMeta('fr').feedbackDescription('Diafane')).toContain(
+      'Proposez des fonctionnalités pour Diafane'
+    )
+  })
+
+  it('titles and describes the roadmap', () => {
+    expect(pageMeta('en').roadmapTitle('Diafane')).toBe('Roadmap - Diafane')
+    expect(pageMeta('fr').roadmapTitle('Diafane')).toBe('Feuille de route - Diafane')
+    expect(pageMeta('es').roadmapDescription('Diafane')).toContain('en qué está trabajando Diafane')
+  })
+
+  it('describes an idea with its title and its category', () => {
+    expect(pageMeta('en').postDescription('More colors', 'Ideas')).toBe(
+      'More colors. Vote and comment on this Ideas post.'
+    )
+    expect(pageMeta('it').postDescription('Più colori', 'Idee')).toBe(
+      'Più colori. Votare e commentare questo post di Idee.'
+    )
+    expect(pageMeta('nl').postDescription('Meer kleuren', 'Ideeën')).toContain('Meer kleuren.')
+  })
+
+  it('has every text in every Diafane language, without an em dash', () => {
+    for (const locale of DIAFANE_LOCALES) {
+      const meta = pageMeta(locale)
+      for (const text of [
+        meta.feedbackTitle('X'),
+        meta.feedbackDescription('X'),
+        meta.roadmapTitle('X'),
+        meta.roadmapDescription('X'),
+        meta.postDescription('T', 'B'),
+      ]) {
+        expect(text.trim(), locale).not.toBe('')
+        expect(text, locale).not.toContain('\u2014')
+      }
+    }
+  })
+})
+
+describe('matchLocale', () => {
+  it('reads the locale that the root route put in the router context', () => {
+    expect(matchLocale({ context: { acceptLanguageLocale: 'it' } })).toBe('it')
+  })
+
+  it('returns undefined when there is nothing to read', () => {
+    expect(matchLocale(undefined)).toBeUndefined()
+    expect(matchLocale(null)).toBeUndefined()
+    expect(matchLocale({})).toBeUndefined()
+    expect(matchLocale({ context: {} })).toBeUndefined()
   })
 })

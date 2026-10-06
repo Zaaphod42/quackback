@@ -21,7 +21,7 @@ import { DefaultErrorPage } from '@/components/shared/error-page'
 import { OttHandler } from '@/components/shared/ott-handler'
 import { documentLocale, htmlLangDir } from '@/lib/shared/document-locale'
 import { normalizeLocale, DEFAULT_LOCALE, type SupportedLocale } from '@/lib/shared/i18n'
-import { pageMeta } from '@/lib/shared/page-meta'
+import { pageMeta, matchLocale } from '@/lib/shared/page-meta'
 
 export interface RouterContext {
   queryClient: QueryClient
@@ -134,7 +134,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       {
         name: 'description',
         // Dans la langue du visiteur (Accept-Language), l'anglais pour les autres.
-        content: pageMeta(match?.context?.acceptLanguageLocale).rootDescription,
+        content: pageMeta(matchLocale(match)).rootDescription,
       },
       {
         property: 'og:type',

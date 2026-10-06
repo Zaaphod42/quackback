@@ -8,6 +8,7 @@ import { Spinner } from '@/components/shared/spinner'
 import { FeedbackContainer } from '@/components/public/feedback/feedback-container'
 import { portalQueries } from '@/lib/client/queries/portal'
 import { votedPostsKeys } from '@/lib/client/hooks/use-portal-posts-query'
+import { pageMeta, matchLocale } from '@/lib/shared/page-meta'
 
 const searchSchema = z.object({
   board: z.string().optional(),
@@ -73,12 +74,13 @@ export const Route = createFileRoute('/_portal/')({
       welcomeCard,
     }
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     if (!loaderData) return {}
     const workspaceName = loaderData.org.name
     const { baseUrl } = loaderData
-    const title = `Feedback - ${workspaceName}`
-    const description = `Submit and vote on feature requests for ${workspaceName}. Help shape what gets built next.`
+    const texts = pageMeta(matchLocale(match))
+    const title = texts.feedbackTitle(workspaceName)
+    const description = texts.feedbackDescription(workspaceName)
     return {
       meta: [
         { title },

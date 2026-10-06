@@ -34,6 +34,7 @@ import { PortalMergeBanner } from '@/components/public/post-detail/merge-banner'
 import { similarPostsQuery } from '@/components/public/post-detail/similar-posts-section'
 import { isValidTypeId, type CommentId, type PostId } from '@quackback/ids'
 import type { TiptapContent } from '@/lib/shared/schemas/posts'
+import { pageMeta, matchLocale } from '@/lib/shared/page-meta'
 
 export const Route = createFileRoute('/_portal/b/$slug/posts/$postId')({
   loader: async ({ params, context }) => {
@@ -91,11 +92,11 @@ export const Route = createFileRoute('/_portal/b/$slug/posts/$postId')({
       baseUrl: context.baseUrl ?? '',
     }
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     if (!loaderData) return {}
     const { postTitle, boardName, slug, postId, baseUrl } = loaderData
     const title = `${postTitle} - ${boardName}`
-    const description = `${postTitle}. Vote and comment on this ${boardName} post.`
+    const description = pageMeta(matchLocale(match)).postDescription(postTitle, boardName)
     const canonicalUrl = baseUrl ? `${baseUrl}/b/${slug}/posts/${postId}` : ''
     return {
       meta: [
