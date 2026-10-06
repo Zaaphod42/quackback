@@ -189,6 +189,7 @@ export function createSDK(): SDK {
     if (launcher || !config || config.launcher === false) return
     launcher = createLauncher({
       placement: config.placement ?? 'right',
+      locale: config.locale,
       onClick: () => {
         if (panelOpen) dispatch('close')
         else dispatch('open')

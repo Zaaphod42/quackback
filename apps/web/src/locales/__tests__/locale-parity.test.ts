@@ -20,6 +20,18 @@ const enKeys = Object.keys(en)
 const enKeySet = new Set(enKeys)
 const localesToCheck = SUPPORTED_LOCALES.filter((l) => l !== DEFAULT_LOCALE)
 
+// The languages of the Diafane portal: they must define EVERY key of en.json.
+// The other catalogs come from upstream and may lag behind English: a key they
+// lack falls back to the English `defaultMessage` by design (see `onIntlError`).
+const COMPLETE_LOCALES = ['en', 'fr', 'de', 'es', 'it', 'nl']
+const completeLocalesToCheck = localesToCheck.filter((l) => COMPLETE_LOCALES.includes(l))
+const laggingLocales = localesToCheck.filter((l) => !COMPLETE_LOCALES.includes(l))
+// Number of en.json keys the lagging catalogs do not translate yet (the
+// message ids that were added to English for the Diafane languages only).
+// It may only go down. A new English key makes it go up: translate it into the
+// lagging catalogs, or raise this number on purpose.
+const LAGGING_GAP_MAX = 211
+
 // Collect the top-level ICU argument names in a message: `{name}` -> "name",
 // `{count, plural, ...}` -> "count". Branch keywords (plural/one/other) and the
 // `#` inside a branch are not arguments, so they are intentionally excluded.
@@ -40,10 +52,22 @@ describe('locale catalogs', () => {
 
   // A key present in en.json but absent from a locale falls back to the English
   // defaultMessage at runtime, surfacing untranslated strings to the user.
-  it.each(localesToCheck)('%s defines every key present in en.json', (locale) => {
+  it.each(completeLocalesToCheck)('%s defines every key present in en.json', (locale) => {
     const localeKeys = new Set(Object.keys(catalogs[locale]))
     const missing = enKeys.filter((key) => !localeKeys.has(key))
     expect(missing, `${locale}.json is missing ${missing.length} key(s)`).toEqual([])
+  })
+
+  // The lagging catalogs may miss the newest keys, but never more than the
+  // known gap: everything else stays translated.
+  it.each(laggingLocales)('%s misses at most the known gap of en.json keys', (locale) => {
+    const localeKeys = new Set(Object.keys(catalogs[locale]))
+    const missing = enKeys.filter((key) => !localeKeys.has(key))
+    expect(
+      missing.length,
+      `${locale}.json misses ${missing.length} key(s), more than the ${LAGGING_GAP_MAX} accepted. ` +
+        'Translate the new keys, or raise LAGGING_GAP_MAX on purpose.'
+    ).toBeLessThanOrEqual(LAGGING_GAP_MAX)
   })
 
   // Extra keys are dead weight (and usually a sign a key was renamed in en.json

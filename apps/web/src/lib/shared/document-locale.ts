@@ -11,6 +11,10 @@ const PORTAL_LAYOUT_ROUTE_ID = '/_portal'
 const LOCALIZED_ROUTE_IDS = new Set([
   '/auth/recovery',
   '/auth/reset-password',
+  '/auth/widget-handoff',
+  '/auth/auth-complete',
+  '/unsubscribe',
+  '/portal-invite/$inviteId',
   '/widget',
 ])
 

@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { buildNavItems, estLienExterne, DIAFANE, type PortalNavItem } from '../portal-header-nav'
+import en from '@/locales/en.json'
+import it_ from '@/locales/it.json'
+import nl from '@/locales/nl.json'
 
 /** Ce qu'une entree ouvre : sa route interne, ou son adresse hors du portail. */
 const cible = (item: PortalNavItem) => (estLienExterne(item) ? item.href : item.to)
@@ -50,5 +53,17 @@ describe('buildNavItems', () => {
   it('marks only the guides as leaving the portal', () => {
     const items = buildNavItems({ helpCenterEnabled: true, supportEnabled: true })
     expect(items.filter(estLienExterne).map((i) => i.href)).toEqual(['https://diafane.com/en/aide'])
+  })
+
+  // Une entree dont la cle manque aux catalogues s'affiche en anglais dans toutes
+  // les langues : c'etait le cas de l'onglet Centre d'aide.
+  it('only uses message ids that every catalog defines, Italian and Dutch included', () => {
+    const items = buildNavItems({ helpCenterEnabled: true, supportEnabled: true })
+    expect(items).toHaveLength(4)
+    for (const { messageId } of items) {
+      expect(messageId in en, `${messageId} missing from en.json`).toBe(true)
+      expect(messageId in it_, `${messageId} missing from it.json`).toBe(true)
+      expect(messageId in nl, `${messageId} missing from nl.json`).toBe(true)
+    }
   })
 })

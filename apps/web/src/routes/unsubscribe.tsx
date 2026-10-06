@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { z } from 'zod'
+import { FormattedMessage, useIntl, type MessageDescriptor } from 'react-intl'
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid'
+import { PortalIntlProvider } from '@/components/portal-intl-provider'
+import { loadPortalIntl } from '@/lib/server/functions/locale'
 import {
   processUnsubscribeTokenFn,
   type UnsubscribeResult,
@@ -11,6 +14,9 @@ const searchSchema = z.object({
 })
 
 export const Route = createFileRoute('/unsubscribe')({
+  // Standalone route (outside the portal layout): it loads the language and its
+  // catalog itself, so the page is translated from the server render on.
+  beforeLoad: async () => ({ intl: await loadPortalIntl() }),
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ token: search.token }),
   loader: async ({ deps }): Promise<UnsubscribeResult | { success: false; error: 'missing' }> => {
@@ -30,6 +36,16 @@ export const Route = createFileRoute('/unsubscribe')({
 })
 
 function UnsubscribePage() {
+  const { intl } = Route.useRouteContext()
+
+  return (
+    <PortalIntlProvider locale={intl.locale} messages={intl.messages}>
+      <UnsubscribeContent />
+    </PortalIntlProvider>
+  )
+}
+
+function UnsubscribeContent() {
   const result = Route.useLoaderData()
 
   if (result.success) {
@@ -40,6 +56,7 @@ function UnsubscribePage() {
 }
 
 function SuccessView({ result }: { result: UnsubscribeResult }) {
+  const intl = useIntl()
   const actionText = getActionText(result.action)
 
   return (
@@ -52,11 +69,20 @@ function SuccessView({ result }: { result: UnsubscribeResult }) {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-xl font-semibold text-foreground">{actionText.title}</h1>
-          <p className="text-sm text-muted-foreground">{actionText.message}</p>
+          <h1 className="text-xl font-semibold text-foreground">
+            {intl.formatMessage(actionText.title)}
+          </h1>
+          <p className="text-sm text-muted-foreground">{intl.formatMessage(actionText.message)}</p>
           {result.postTitle && (
             <p className="text-sm text-muted-foreground mt-2">
-              Post: <span className="font-medium">{result.postTitle}</span>
+              <FormattedMessage
+                id="portal.unsubscribe.post"
+                defaultMessage="Post: <b>{title}</b>"
+                values={{
+                  title: result.postTitle,
+                  b: (chunks) => <span className="font-medium">{chunks}</span>,
+                }}
+              />
             </p>
           )}
         </div>
@@ -68,14 +94,14 @@ function SuccessView({ result }: { result: UnsubscribeResult }) {
               params={{ slug: result.boardSlug, postId: result.postId }}
               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              View Post
+              <FormattedMessage id="portal.unsubscribe.viewPost" defaultMessage="View Post" />
             </Link>
           ) : (
             <Link
               to="/"
               className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Go to Home
+              <FormattedMessage id="portal.unsubscribe.goHome" defaultMessage="Go to Home" />
             </Link>
           )}
         </div>
@@ -85,6 +111,7 @@ function SuccessView({ result }: { result: UnsubscribeResult }) {
 }
 
 function ErrorView({ error }: { error: string }) {
+  const intl = useIntl()
   const { title, message } = getErrorContent(error)
 
   return (
@@ -97,8 +124,8 @@ function ErrorView({ error }: { error: string }) {
         </div>
 
         <div className="text-center space-y-2">
-          <h1 className="text-xl font-semibold text-foreground">{title}</h1>
-          <p className="text-sm text-muted-foreground">{message}</p>
+          <h1 className="text-xl font-semibold text-foreground">{intl.formatMessage(title)}</h1>
+          <p className="text-sm text-muted-foreground">{intl.formatMessage(message)}</p>
         </div>
 
         <div className="flex justify-center pt-4">
@@ -106,7 +133,7 @@ function ErrorView({ error }: { error: string }) {
             to="/"
             className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Go to Home
+            <FormattedMessage id="portal.unsubscribe.goHome" defaultMessage="Go to Home" />
           </Link>
         </div>
       </div>
@@ -114,57 +141,87 @@ function ErrorView({ error }: { error: string }) {
   )
 }
 
-function getActionText(action?: string): { title: string; message: string } {
+interface TitleAndMessage {
+  title: MessageDescriptor
+  message: MessageDescriptor
+}
+
+function getActionText(action?: string): TitleAndMessage {
   switch (action) {
     case 'unsubscribe_post':
       return {
-        title: 'Unsubscribed',
-        message:
-          "You've been unsubscribed from this post. You won't receive any more email updates about it.",
+        title: { id: 'portal.unsubscribe.post.title', defaultMessage: 'Unsubscribed' },
+        message: {
+          id: 'portal.unsubscribe.post.message',
+          defaultMessage:
+            "You've been unsubscribed from this post. You won't receive any more email updates about it.",
+        },
       }
     case 'mute_post':
       return {
-        title: 'Notifications Muted',
-        message:
-          "You've muted notifications for this post. You can unmute anytime from the post page.",
+        title: { id: 'portal.unsubscribe.mute.title', defaultMessage: 'Notifications Muted' },
+        message: {
+          id: 'portal.unsubscribe.mute.message',
+          defaultMessage:
+            "You've muted notifications for this post. You can unmute anytime from the post page.",
+        },
       }
     case 'unsubscribe_all':
       return {
-        title: 'All Emails Disabled',
-        message:
-          "You've disabled all email notifications. You can re-enable them from your settings.",
+        title: { id: 'portal.unsubscribe.all.title', defaultMessage: 'All Emails Disabled' },
+        message: {
+          id: 'portal.unsubscribe.all.message',
+          defaultMessage:
+            "You've disabled all email notifications. You can re-enable them from your settings.",
+        },
       }
     default:
       return {
-        title: 'Success',
-        message: 'Your preferences have been updated.',
+        title: { id: 'portal.unsubscribe.success.title', defaultMessage: 'Success' },
+        message: {
+          id: 'portal.unsubscribe.success.message',
+          defaultMessage: 'Your preferences have been updated.',
+        },
       }
   }
 }
 
-function getErrorContent(error: string): { title: string; message: string } {
+function getErrorContent(error: string): TitleAndMessage {
   switch (error) {
     case 'missing':
       return {
-        title: 'Missing Token',
-        message: 'No unsubscribe token was provided. Please use the link from your email.',
+        title: { id: 'portal.unsubscribe.missing.title', defaultMessage: 'Missing Token' },
+        message: {
+          id: 'portal.unsubscribe.missing.message',
+          defaultMessage: 'No unsubscribe token was provided. Please use the link from your email.',
+        },
       }
     case 'invalid':
     case 'expired':
     case 'used':
       return {
-        title: 'Link Expired',
-        message: 'This unsubscribe link has already been used or has expired.',
+        title: { id: 'portal.unsubscribe.expired.title', defaultMessage: 'Link Expired' },
+        message: {
+          id: 'portal.unsubscribe.expired.message',
+          defaultMessage: 'This unsubscribe link has already been used or has expired.',
+        },
       }
     case 'failed':
       return {
-        title: 'Something Went Wrong',
-        message: "We couldn't process your request. Please try again later.",
+        title: { id: 'portal.unsubscribe.failed.title', defaultMessage: 'Something Went Wrong' },
+        message: {
+          id: 'portal.unsubscribe.failed.message',
+          defaultMessage: "We couldn't process your request. Please try again later.",
+        },
       }
     default:
       return {
-        title: 'Invalid Link',
-        message: 'This unsubscribe link is not valid. Please use the link from your email.',
+        title: { id: 'portal.unsubscribe.invalid.title', defaultMessage: 'Invalid Link' },
+        message: {
+          id: 'portal.unsubscribe.invalid.message',
+          defaultMessage:
+            'This unsubscribe link is not valid. Please use the link from your email.',
+        },
       }
   }
 }

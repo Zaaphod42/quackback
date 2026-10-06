@@ -9,6 +9,7 @@ import { generateThemeCSS } from '@/lib/shared/theme'
 import { PortalIntlProvider } from '@/components/portal-intl-provider'
 import { getPortalLocaleFn, loadPortalIntl } from '@/lib/server/functions/locale'
 import { DEFAULT_LOCALE } from '@/lib/shared/i18n'
+import { pageMeta } from '@/lib/shared/page-meta'
 import {
   evaluateMyPortalAccessFn,
   recordPortalAccessDeniedFn,
@@ -183,7 +184,7 @@ export const Route = createFileRoute('/_portal')({
     if (loaderData?.gate) {
       return {
         meta: [
-          { title: `Sign in · ${loaderData.gate.workspaceName}` },
+          { title: pageMeta(loaderData.gate.locale).gateTitle(loaderData.gate.workspaceName) },
           { name: 'robots', content: 'noindex, nofollow' },
         ],
         links: [{ rel: 'icon', href: loaderData.gate.logoUrl || '/logo.png' }],
@@ -195,7 +196,7 @@ export const Route = createFileRoute('/_portal')({
       loaderData?.faviconData?.url || loaderData?.brandingData?.logoUrl || '/logo.png'
 
     const workspaceName = loaderData?.org?.name ?? 'Quackback'
-    const description = `Share feedback, vote on feature requests, and track the ${workspaceName} roadmap.`
+    const description = pageMeta(loaderData?.locale).portalDescription(workspaceName)
     const logoUrl = loaderData?.brandingData?.logoUrl || '/logo.png'
 
     const meta: Array<Record<string, string>> = [

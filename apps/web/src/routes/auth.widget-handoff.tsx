@@ -36,6 +36,9 @@
  *     widget sessions (HMAC not required) never reach the portal via this path.
  */
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { FormattedMessage } from 'react-intl'
+import { PortalIntlProvider } from '@/components/portal-intl-provider'
+import { loadPortalIntl } from '@/lib/server/functions/locale'
 import { createServerFn, createServerOnlyFn } from '@tanstack/react-start'
 import { getRequestHeaders, setResponseHeader } from '@tanstack/react-start/server'
 import { z } from 'zod'
@@ -282,6 +285,9 @@ const consumeWidgetHandoffFn = createServerFn({ method: 'POST' })
 // ---------------------------------------------------------------------------
 
 export const Route = createFileRoute('/auth/widget-handoff')({
+  // Standalone route (outside the portal layout): it loads the language and its
+  // catalog itself, so the page is translated from the server render on.
+  beforeLoad: async () => ({ intl: await loadPortalIntl() }),
   validateSearch: searchSchema.parse,
   loader: async ({ location }): Promise<LoaderData> => {
     // The search schema is shared between validateSearch and the server fn's
@@ -304,16 +310,39 @@ export const Route = createFileRoute('/auth/widget-handoff')({
 // ---------------------------------------------------------------------------
 
 function WidgetHandoffErrorPage() {
+  const { intl } = Route.useRouteContext()
+
+  return (
+    <PortalIntlProvider locale={intl.locale} messages={intl.messages}>
+      <WidgetHandoffErrorContent />
+    </PortalIntlProvider>
+  )
+}
+
+function WidgetHandoffErrorContent() {
   const data = Route.useLoaderData()
 
   return (
     <PageShell>
       <Card>
-        <h1 className="text-xl font-semibold tracking-tight">Sign-in link expired</h1>
+        <h1 className="text-xl font-semibold tracking-tight">
+          <FormattedMessage
+            id="portal.handoff.expired.title"
+            defaultMessage="Sign-in link expired"
+          />
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {data.status === 'error'
-            ? 'Something went wrong while processing your sign-in link. Please reopen the widget and try again.'
-            : 'This sign-in link has expired or has already been used. Please reopen the widget to get a new link.'}
+          {data.status === 'error' ? (
+            <FormattedMessage
+              id="portal.handoff.error.body"
+              defaultMessage="Something went wrong while processing your sign-in link. Please reopen the widget and try again."
+            />
+          ) : (
+            <FormattedMessage
+              id="portal.handoff.expired.body"
+              defaultMessage="This sign-in link has expired or has already been used. Please reopen the widget to get a new link."
+            />
+          )}
         </p>
       </Card>
     </PageShell>

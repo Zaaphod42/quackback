@@ -30,6 +30,8 @@ import {
   VOTE_THRESHOLDS,
   DATE_PRESETS,
   RESPONDED_OPTIONS,
+  VOTE_THRESHOLD_MESSAGE,
+  DATE_PRESET_MESSAGES,
   STATUS_CATEGORY_ORDER,
   getDateFromDaysAgo,
   type DatePresetValue,
@@ -85,7 +87,10 @@ export function PublicFiltersBar({
   return (
     <div
       role="region"
-      aria-label="Active filters"
+      aria-label={intl.formatMessage({
+        id: 'portal.feedback.filter.active',
+        defaultMessage: 'Active filters',
+      })}
       className="flex flex-wrap gap-2 items-center py-0.5"
     >
       {activeChips.map(({ key, type, ...chipProps }) => (
@@ -399,13 +404,13 @@ function AddFilterButton({
                     {VOTE_THRESHOLDS.map((t) => (
                       <CommandItem
                         key={t.value}
-                        value={t.label}
+                        value={intl.formatMessage(VOTE_THRESHOLD_MESSAGE, { count: t.value })}
                         onSelect={() => {
                           setFilters({ minVotes: t.value })
                           closePopover()
                         }}
                       >
-                        {t.label}
+                        {intl.formatMessage(VOTE_THRESHOLD_MESSAGE, { count: t.value })}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -416,13 +421,13 @@ function AddFilterButton({
                     {DATE_PRESETS.map((p) => (
                       <CommandItem
                         key={p.value}
-                        value={p.label}
+                        value={intl.formatMessage(DATE_PRESET_MESSAGES[p.value])}
                         onSelect={() => {
                           setFilters({ dateFrom: getDateFromDaysAgo(p.daysAgo) })
                           closePopover()
                         }}
                       >
-                        {p.label}
+                        {intl.formatMessage(DATE_PRESET_MESSAGES[p.value])}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -433,13 +438,13 @@ function AddFilterButton({
                     {RESPONDED_OPTIONS.map((opt) => (
                       <CommandItem
                         key={opt.value}
-                        value={opt.label}
+                        value={intl.formatMessage(opt.message)}
                         onSelect={() => {
                           setFilters({ responded: opt.value })
                           closePopover()
                         }}
                       >
-                        {opt.label}
+                        {intl.formatMessage(opt.message)}
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -581,7 +586,7 @@ function buildActiveChips(args: {
   if (filters.minVotes) {
     const opts: FilterOption[] = VOTE_THRESHOLDS.map((t) => ({
       id: String(t.value),
-      label: t.label,
+      label: intl.formatMessage(VOTE_THRESHOLD_MESSAGE, { count: t.value }),
     }))
     const matched = VOTE_THRESHOLDS.find((t) => t.value === filters.minVotes)
     chips.push({
@@ -591,7 +596,9 @@ function buildActiveChips(args: {
         id: 'portal.feedback.filter.chip.votes',
         defaultMessage: 'Min votes:',
       }),
-      value: matched ? matched.label : `${filters.minVotes}+`,
+      value: matched
+        ? intl.formatMessage(VOTE_THRESHOLD_MESSAGE, { count: matched.value })
+        : `${filters.minVotes}+`,
       valueId: String(filters.minVotes),
       options: opts,
       onChange: (id) => setFilters({ minVotes: parseInt(id, 10) }),
@@ -601,7 +608,10 @@ function buildActiveChips(args: {
 
   // Created date
   if (filters.dateFrom) {
-    const opts: FilterOption[] = DATE_PRESETS.map((p) => ({ id: p.value, label: p.label }))
+    const opts: FilterOption[] = DATE_PRESETS.map((p) => ({
+      id: p.value,
+      label: intl.formatMessage(DATE_PRESET_MESSAGES[p.value]),
+    }))
     const matched = DATE_PRESETS.find((p) => getDateFromDaysAgo(p.daysAgo) === filters.dateFrom)
     chips.push({
       key: 'dateFrom',
@@ -610,7 +620,7 @@ function buildActiveChips(args: {
         id: 'portal.feedback.filter.chip.date',
         defaultMessage: 'Date:',
       }),
-      value: matched ? matched.label : filters.dateFrom,
+      value: matched ? intl.formatMessage(DATE_PRESET_MESSAGES[matched.value]) : filters.dateFrom,
       valueId: matched?.value ?? filters.dateFrom,
       options: opts,
       onChange: (presetId) => {
@@ -623,7 +633,10 @@ function buildActiveChips(args: {
 
   // Team response
   if (filters.responded) {
-    const opts: FilterOption[] = RESPONDED_OPTIONS.map((o) => ({ id: o.value, label: o.label }))
+    const opts: FilterOption[] = RESPONDED_OPTIONS.map((o) => ({
+      id: o.value,
+      label: intl.formatMessage(o.message),
+    }))
     const matched = RESPONDED_OPTIONS.find((o) => o.value === filters.responded)
     chips.push({
       key: 'responded',
@@ -632,7 +645,7 @@ function buildActiveChips(args: {
         id: 'portal.feedback.filter.chip.response',
         defaultMessage: 'Team response:',
       }),
-      value: matched?.label ?? filters.responded,
+      value: matched ? intl.formatMessage(matched.message) : filters.responded,
       valueId: filters.responded,
       options: opts,
       onChange: (id) => setFilters({ responded: id as RespondedValue }),

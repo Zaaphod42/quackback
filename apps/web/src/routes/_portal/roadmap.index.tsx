@@ -4,6 +4,7 @@ import { FormattedMessage } from 'react-intl'
 import { z } from 'zod'
 import { RoadmapBoard } from '@/components/public/roadmap-board'
 import { portalQueries } from '@/lib/client/queries/portal'
+import { pageMeta, matchLocale } from '@/lib/shared/page-meta'
 
 const searchSchema = z.object({
   roadmap: z.string().optional(),
@@ -33,11 +34,12 @@ export const Route = createFileRoute('/_portal/roadmap/')({
       userRole: userRole ?? null,
     }
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, match }) => {
     if (!loaderData) return {}
     const { workspaceName, baseUrl } = loaderData
-    const title = `Roadmap - ${workspaceName}`
-    const description = `See what ${workspaceName} is working on and what's coming next.`
+    const texts = pageMeta(matchLocale(match))
+    const title = texts.roadmapTitle(workspaceName)
+    const description = texts.roadmapDescription(workspaceName)
     const canonicalUrl = baseUrl ? `${baseUrl}/roadmap` : ''
     return {
       meta: [

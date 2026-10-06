@@ -8,12 +8,14 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { NotificationItem } from './notification-item'
 import { useNotifications } from '@/lib/client/hooks/use-notifications-queries'
 import { useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '@/lib/client/mutations'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 interface NotificationDropdownProps {
   onClose?: () => void
 }
 
 export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
+  const intl = useOptionalIntl()
   const { data, isLoading, isError } = useNotifications({ limit: 10 })
   const markAsRead = useMarkNotificationAsRead()
   const markAllAsRead = useMarkAllNotificationsAsRead()
@@ -28,7 +30,12 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <h3 className="font-semibold text-sm">Notifications</h3>
+        <h3 className="font-semibold text-sm">
+          {intl.formatMessage({
+            id: 'portal.notifications.title',
+            defaultMessage: 'Notifications',
+          })}
+        </h3>
         {unreadCount > 0 && (
           <Button
             variant="ghost"
@@ -37,7 +44,10 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
             disabled={markAllAsRead.isPending}
             className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
           >
-            Mark all read
+            {intl.formatMessage({
+              id: 'portal.notifications.markAllRead',
+              defaultMessage: 'Mark all read',
+            })}
           </Button>
         )}
       </div>
@@ -50,7 +60,12 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
       ) : isError ? (
         <div className="flex flex-col items-center justify-center h-48">
           <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground/50 mb-2" />
-          <p className="text-sm text-muted-foreground">Failed to load</p>
+          <p className="text-sm text-muted-foreground">
+            {intl.formatMessage({
+              id: 'portal.notifications.loadFailed',
+              defaultMessage: 'Failed to load',
+            })}
+          </p>
         </div>
       ) : hasNotifications ? (
         <div className="max-h-80 overflow-hidden">
@@ -70,7 +85,12 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
       ) : (
         <div className="flex flex-col items-center justify-center h-48">
           <InboxIcon className="h-8 w-8 text-muted-foreground/50 mb-2" />
-          <p className="text-sm text-muted-foreground">No notifications yet</p>
+          <p className="text-sm text-muted-foreground">
+            {intl.formatMessage({
+              id: 'portal.notifications.dropdownEmpty',
+              defaultMessage: 'No notifications yet',
+            })}
+          </p>
         </div>
       )}
 
@@ -82,7 +102,7 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
             onClick={onClose}
             className="block text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            View all
+            {intl.formatMessage({ id: 'portal.notifications.viewAll', defaultMessage: 'View all' })}
           </Link>
         </div>
       )}

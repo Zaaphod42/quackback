@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FaceSmileIcon } from '@heroicons/react/24/outline'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/shared/utils'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 // A small curated set keeps this dependency-free; covers the common chat range.
 const EMOJIS = [
@@ -60,6 +61,7 @@ export function EmojiPicker({
   onSelect: (emoji: string) => void
   className?: string
 }) {
+  const intl = useOptionalIntl()
   const [open, setOpen] = useState(false)
 
   return (
@@ -71,7 +73,10 @@ export function EmojiPicker({
             'flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted',
             className
           )}
-          aria-label="Insert emoji"
+          aria-label={intl.formatMessage({
+            id: 'widget.chat.emoji.insert',
+            defaultMessage: 'Insert emoji',
+          })}
         >
           <FaceSmileIcon className="h-4 w-4" />
         </button>

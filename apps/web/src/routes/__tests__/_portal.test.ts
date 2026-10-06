@@ -199,3 +199,55 @@ describe('_portal loader — portal-visibility gate + access.denied audit', () =
     expect(result?.gate?.locale).toBe('en')
   })
 })
+
+// ---------------------------------------------------------------------------
+// head: the tab title of the sign-in screen and the description of the portal
+// pages are written in the visitor's language.
+// ---------------------------------------------------------------------------
+
+type HeadResult = { meta: Array<Record<string, string>> }
+function runHead(loaderData: unknown): HeadResult {
+  const head = (
+    routeOptions as unknown as { options: { head: (ctx: { loaderData: unknown }) => HeadResult } }
+  ).options.head
+  return head({ loaderData })
+}
+
+describe('_portal head — texts in the visitor language', () => {
+  const gate = (locale: string) => ({
+    gate: { type: 'portal-access-gate', locale, workspaceName: 'Diafane', logoUrl: null },
+  })
+
+  it.each([
+    ['en', 'Sign in · Diafane'],
+    ['fr', 'Connexion · Diafane'],
+    ['it', 'Accedi · Diafane'],
+    ['nl', 'Aanmelden · Diafane'],
+  ])('titles the sign-in screen in %s', (locale, title) => {
+    const { meta } = runHead(gate(locale))
+    expect(meta.find((m) => 'title' in m)?.title).toBe(title)
+    expect(meta.find((m) => m.name === 'robots')?.content).toBe('noindex, nofollow')
+  })
+
+  it.each([
+    ['en', 'Share feedback, vote on feature requests, and track the Diafane roadmap.'],
+    [
+      'it',
+      'Condividere feedback, votare le richieste di funzioni e seguire la roadmap di Diafane.',
+    ],
+    ['nl', 'Deel feedback, stem op functieverzoeken en volg de roadmap van Diafane.'],
+  ])('describes the portal in %s', (locale, expected) => {
+    const { meta } = runHead({ locale, gate: null, org: { name: 'Diafane' } })
+    const description = meta.find((m) => m.name === 'description')?.content
+    expect(description).toBe(expected)
+    expect(meta.find((m) => m.property === 'og:description')?.content).toBe(expected)
+    expect(meta.find((m) => m.name === 'twitter:description')?.content).toBe(expected)
+  })
+
+  it('reads English when the loader data is missing', () => {
+    const { meta } = runHead(undefined)
+    expect(meta.find((m) => m.name === 'description')?.content).toBe(
+      'Share feedback, vote on feature requests, and track the Quackback roadmap.'
+    )
+  })
+})

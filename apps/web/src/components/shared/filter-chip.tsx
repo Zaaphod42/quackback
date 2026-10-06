@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/shared/utils'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 export interface FilterOption {
   id: string
@@ -38,6 +39,7 @@ export function FilterChip({
   onChange,
   options,
 }: FilterChipProps) {
+  const intl = useOptionalIntl()
   const [open, setOpen] = useState(false)
   const hasOptions = options && options.length > 0 && onChange
 
@@ -117,7 +119,10 @@ export function FilterChip({
           'text-muted-foreground hover:text-foreground',
           'transition-colors'
         )}
-        aria-label={`Remove ${label} ${value} filter`}
+        aria-label={intl.formatMessage(
+          { id: 'portal.feedback.filter.remove', defaultMessage: 'Remove {label} {value} filter' },
+          { label, value }
+        )}
       >
         <XMarkIcon className="h-2.5 w-2.5" />
       </button>

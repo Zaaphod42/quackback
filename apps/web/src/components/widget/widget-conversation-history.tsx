@@ -1,15 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl, type MessageDescriptor } from 'react-intl'
 import { ChevronRightIcon } from 'lucide-react'
 import type { ConversationId } from '@quackback/ids'
 import { getMyConversationsFn } from '@/lib/server/functions/chat'
 import { getWidgetAuthHeaders } from '@/lib/client/widget-auth'
 import { TimeAgo } from '@/components/ui/time-ago'
 
-const STATUS_LABEL: Record<string, string> = {
-  open: 'Open',
-  pending: 'Awaiting you',
-  closed: 'Closed',
+// Same wording as the support list of the portal (`portal.support.status.*`).
+const STATUS_LABEL: Record<string, MessageDescriptor> = {
+  open: { id: 'portal.support.status.open', defaultMessage: 'Open' },
+  pending: { id: 'portal.support.status.pending', defaultMessage: 'Awaiting you' },
+  closed: { id: 'portal.support.status.closed', defaultMessage: 'Closed' },
 }
 
 /**
@@ -26,6 +27,7 @@ export function WidgetConversationHistory({
   activeId?: ConversationId | null
   onSelect: (id: ConversationId) => void
 }) {
+  const intl = useIntl()
   const { data } = useQuery({
     queryKey: ['widget', 'my-conversations'],
     // Forward the widget Bearer token, or token-authed visitors fail the
@@ -52,10 +54,16 @@ export function WidgetConversationHistory({
             >
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-foreground">
-                  {c.subject || c.lastMessagePreview || 'Conversation'}
+                  {c.subject ||
+                    c.lastMessagePreview ||
+                    intl.formatMessage({
+                      id: 'portal.support.untitled',
+                      defaultMessage: 'Conversation',
+                    })}
                 </span>
                 <span className="text-[11px] text-muted-foreground">
-                  {STATUS_LABEL[c.status] ?? c.status} · <TimeAgo date={c.lastMessageAt} />
+                  {STATUS_LABEL[c.status] ? intl.formatMessage(STATUS_LABEL[c.status]) : c.status} ·{' '}
+                  <TimeAgo date={c.lastMessageAt} />
                 </span>
               </span>
               <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground/50 rtl:rotate-180" />
