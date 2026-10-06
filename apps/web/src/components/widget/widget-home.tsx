@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { useIntl } from 'react-intl'
-import { PencilIcon } from '@heroicons/react/24/solid'
+import { PencilIcon } from 'lucide-react'
 import type { WidgetHomeProps } from './widget-home-animated'
 
 // Defer framer-motion (~360KB minified) to a client-only chunk. The widget

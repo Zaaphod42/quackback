@@ -2,8 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useState, useCallback, useEffect, useMemo } from 'react'
-import { CheckCircleIcon } from '@heroicons/react/24/solid'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { CircleCheckIcon, ArrowLeftIcon } from 'lucide-react'
 import { WidgetVoteButton } from '@/components/widget/widget-vote-button'
 import type { PostId } from '@quackback/ids'
 import { WidgetShell } from '@/components/widget/widget-shell'
@@ -468,7 +467,7 @@ function WidgetPage() {
             <div className="flex flex-col h-full">
               <div className="flex items-center gap-2.5 px-4 pt-5 pb-3">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/15 shrink-0">
-                  <CheckCircleIcon className="w-4.5 h-4.5 text-primary" />
+                  <CircleCheckIcon className="w-4.5 h-4.5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Thanks for your feedback!</p>

@@ -1,5 +1,5 @@
 import { FormattedMessage } from 'react-intl'
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline'
+import { MessagesSquareIcon } from 'lucide-react'
 import type { ConversationId } from '@quackback/ids'
 import { chatAvailable } from '@/lib/shared/chat/presence'
 import { useChatSummary } from './use-chat-summary'
@@ -47,7 +47,7 @@ export function WidgetMessagesSection({ onOpenChat }: WidgetMessagesSectionProps
         onClick={() => onOpenChat('new')}
         className="mt-2 flex w-full items-center gap-2.5 rounded-lg border border-border/60 bg-card px-3 py-2.5 text-start transition-colors hover:bg-muted/40"
       >
-        <ChatBubbleLeftRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <MessagesSquareIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-medium text-foreground">
             {conversation ? (

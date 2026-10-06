@@ -121,6 +121,10 @@ function WidgetLayout() {
           __html: `
             body { overflow: hidden; margin: 0; }
             html, body, #root { height: 100%; }
+            /* La feuille d'habillage du portail reserve la gouttiere d'ascenseur
+               (scrollbar-gutter: stable) : dans le widget elle laissait un liseré
+               blanc sur le bord droit du panneau. Ce bloc passe apres elle. */
+            html { scrollbar-gutter: auto; }
             /* Prevent white flash before theme resolves */
             html.system { background: #fff; }
             @media (prefers-color-scheme: dark) {

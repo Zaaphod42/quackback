@@ -1,4 +1,4 @@
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid'
+import { ExternalLinkIcon } from 'lucide-react'
 
 interface WidgetPortalTitleProps {
   title: string
@@ -12,7 +12,7 @@ export function WidgetPortalTitle({ title, onClick }: WidgetPortalTitleProps) {
       <h2 className="text-[15px] font-semibold text-foreground leading-snug group-hover:text-primary transition-colors inline">
         {title}
       </h2>
-      <ArrowTopRightOnSquareIcon className="h-4 w-4 text-muted-foreground/40 inline ml-1.5 mb-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+      <ExternalLinkIcon className="h-4 w-4 text-muted-foreground/40 inline ml-1.5 mb-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
     </button>
   )
 }

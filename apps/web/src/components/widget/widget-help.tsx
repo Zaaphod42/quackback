@@ -3,7 +3,7 @@ import { useIntl, FormattedMessage } from 'react-intl'
 import { useQuery } from '@tanstack/react-query'
 import { contentPreview } from '@/lib/shared/utils/string'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { MagnifyingGlassIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline'
+import { SearchIcon, CircleHelpIcon } from 'lucide-react'
 import { publicHelpCenterQueries } from '@/lib/client/queries/help-center'
 import { getTopLevelCategories } from '@/components/help-center/help-center-utils'
 import { CategoryIcon } from '@/components/help-center/category-icon'
@@ -88,7 +88,7 @@ export function WidgetHelp({ onArticleSelect, onCategorySelect, onOpenChat }: Wi
       {/* Search bar */}
       <div className="px-3 pt-2 pb-1 shrink-0">
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+          <SearchIcon className="absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
           <input
             type="text"
             value={search}
@@ -117,7 +117,7 @@ export function WidgetHelp({ onArticleSelect, onCategorySelect, onOpenChat }: Wi
 
               {!categoriesQuery.isLoading && topLevelCategories.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-8 text-center px-4">
-                  <QuestionMarkCircleIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                  <CircleHelpIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
                   <p className="text-sm font-medium text-muted-foreground/70">
                     <FormattedMessage
                       id="widget.help.noCategories"
@@ -175,7 +175,7 @@ export function WidgetHelp({ onArticleSelect, onCategorySelect, onOpenChat }: Wi
 
           {!isSearching && search && results.length === 0 && (
             <div className="flex flex-col items-center justify-center py-8 text-center px-4">
-              <QuestionMarkCircleIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
+              <CircleHelpIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
               <p className="text-sm font-medium text-muted-foreground/70">
                 <FormattedMessage id="widget.help.noResults" defaultMessage="No results found" />
               </p>

@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { contentPreview } from '@/lib/shared/utils/string'
 import { publicChangelogQueries } from '@/lib/client/queries/changelog'
 import { useInfiniteScroll } from '@/lib/client/hooks/use-infinite-scroll'
-import { NewspaperIcon } from '@heroicons/react/24/outline'
+import { NewspaperIcon } from 'lucide-react'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {

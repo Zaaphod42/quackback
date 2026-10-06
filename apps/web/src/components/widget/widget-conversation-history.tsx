@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { FormattedMessage } from 'react-intl'
-import { ChevronRightIcon } from '@heroicons/react/24/outline'
+import { ChevronRightIcon } from 'lucide-react'
 import type { ConversationId } from '@quackback/ids'
 import { getMyConversationsFn } from '@/lib/server/functions/chat'
 import { getWidgetAuthHeaders } from '@/lib/client/widget-auth'

@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import { FormattedMessage } from 'react-intl'
-import { LightBulbIcon, ChatBubbleLeftRightIcon, ChevronRightIcon } from '@heroicons/react/24/solid'
+import { LightbulbIcon, MessagesSquareIcon, ChevronRightIcon } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/shared/utils'
 import { useChatSummary } from './use-chat-summary'
@@ -81,7 +81,7 @@ export function WidgetOverview({
             {tabs.feedback && (
               <ActionCard
                 primary
-                icon={LightBulbIcon}
+                icon={LightbulbIcon}
                 onClick={onLeaveFeedback}
                 title={
                   <FormattedMessage
@@ -100,7 +100,7 @@ export function WidgetOverview({
 
             {supportEnabled(tabs) && (
               <ActionCard
-                icon={ChatBubbleLeftRightIcon}
+                icon={MessagesSquareIcon}
                 onClick={onGetHelp}
                 title={
                   tabs.chat && !tabs.help ? (
