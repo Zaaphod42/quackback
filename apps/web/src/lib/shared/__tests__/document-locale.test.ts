@@ -40,10 +40,14 @@ describe('htmlLangDir', () => {
     expect(htmlLangDir('zh-tw').lang).toBe('zh-TW')
     expect(htmlLangDir('pt-br').lang).toBe('pt-BR')
     expect(htmlLangDir('en').lang).toBe('en') // no region subtag, unchanged
+    expect(htmlLangDir('it').lang).toBe('it')
+    expect(htmlLangDir('nl').lang).toBe('nl')
   })
   it('sets dir from the locale', () => {
     expect(htmlLangDir('ar').dir).toBe('rtl')
     expect(htmlLangDir('en').dir).toBe('ltr')
     expect(htmlLangDir('zh-cn').dir).toBe('ltr')
+    expect(htmlLangDir('it').dir).toBe('ltr')
+    expect(htmlLangDir('nl').dir).toBe('ltr')
   })
 })

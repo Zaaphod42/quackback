@@ -20,7 +20,16 @@ describe('normalizeLocale', () => {
   })
   it('returns null for locales without message catalogs', () => {
     expect(normalizeLocale('ja-JP')).toBeNull()
-    expect(normalizeLocale('it')).toBeNull()
+    expect(normalizeLocale('pl')).toBeNull()
+  })
+  it('resolves Italian and Dutch, with or without a region', () => {
+    expect(normalizeLocale('it')).toBe('it')
+    expect(normalizeLocale('it-IT')).toBe('it')
+    expect(normalizeLocale('it-CH')).toBe('it')
+    expect(normalizeLocale('nl')).toBe('nl')
+    expect(normalizeLocale('nl-NL')).toBe('nl')
+    expect(normalizeLocale('nl-BE')).toBe('nl')
+    expect(normalizeLocale('NL-be')).toBe('nl')
   })
   it('returns null for unsupported locale', () => {
     expect(normalizeLocale('zz')).toBeNull()
@@ -103,6 +112,24 @@ describe('resolveLocale', () => {
     expect(resolveLocale('en', 'zh-Hant')).toBe('zh-tw')
     expect(resolveLocale('en', 'zh-CN')).toBe('zh-cn')
   })
+  it('gives Italian and Dutch browsers their own language instead of English', () => {
+    expect(resolveLocale('it-IT,it;q=0.9,en;q=0.8')).toBe('it')
+    expect(resolveLocale('it')).toBe('it')
+    expect(resolveLocale('nl-NL,nl;q=0.9,en;q=0.8')).toBe('nl')
+    expect(resolveLocale('nl-BE,nl;q=0.9,fr;q=0.5')).toBe('nl')
+  })
+  it('honours quality factors between the new and the existing languages', () => {
+    expect(resolveLocale('en;q=0.5, nl;q=0.9')).toBe('nl')
+    expect(resolveLocale('pl, it;q=0.8, en;q=0.4')).toBe('it')
+    // Unsupported first choice still falls through to a supported one.
+    expect(resolveLocale('ja, nl;q=0.7')).toBe('nl')
+  })
+  it('respects an explicit Italian or Dutch override (widget ?locale=)', () => {
+    expect(resolveLocale('en', 'it')).toBe('it')
+    expect(resolveLocale('en', 'it-IT')).toBe('it')
+    expect(resolveLocale('fr', 'nl')).toBe('nl')
+    expect(resolveLocale('fr', 'nl-BE')).toBe('nl')
+  })
 })
 
 describe('isRtlLocale', () => {
@@ -129,6 +156,10 @@ describe('SUPPORTED_LOCALES', () => {
   it('includes Simplified and Traditional Chinese', () => {
     expect(SUPPORTED_LOCALES).toContain('zh-cn')
     expect(SUPPORTED_LOCALES).toContain('zh-tw')
+  })
+  it('includes Italian and Dutch', () => {
+    expect(SUPPORTED_LOCALES).toContain('it')
+    expect(SUPPORTED_LOCALES).toContain('nl')
   })
   it('DEFAULT_LOCALE is en', () => {
     expect(DEFAULT_LOCALE).toBe('en')
