@@ -200,42 +200,88 @@ describe('German register', () => {
   })
 })
 
-describe('Spanish register of the keys added for Diafane', () => {
-  // The new keys are written with "usted". (The older Spanish keys come from
-  // upstream, in the informal register; they are not covered here.)
-  const USTED = [
-    'portal.auth.noMethods',
-    'portal.auth.private.loginTagline',
-    'portal.auth.private.loginTitle',
-    'portal.auth.private.loginTitleGeneric',
-    'portal.auth.private.signupTagline',
-    'widget.chat.closedReopen',
-    'widget.chat.startPrompt',
-    'widget.chat.placeholder',
-    'widget.chat.upload.failed',
-    'widget.commentForm.errorPost',
-    'widget.shell.goToPortal.error',
+describe('Spanish register', () => {
+  // Diafane writes to its Spanish users with "usted", everywhere: no "tú", no
+  // informal imperative ("Inicia", "Escribe", "Introduce"...), no "tu/tus".
+  const INFORMAL = [
+    'tú',
+    'tu',
+    'tus',
+    'ti',
+    'te',
+    'tienes',
+    'puedes',
+    'quieres',
+    'eres',
+    'estás',
+    'has',
+    'inicia',
+    'escribe',
+    'introduce',
+    'crea',
+    'elige',
+    'selecciona',
+    'prueba',
+    'busca',
+    'vuelve',
+    'comparte',
+    'añade',
+    'usa',
+    'pide',
+    'revisa',
+    'restablece',
+    'establece',
+    'mantente',
+    'personaliza',
+    'gestiona',
+    'consulta',
+    'encuentra',
+    'recibe',
+    'continúa',
+    'envíanos',
+    'escríbenos',
+    'inténtalo',
+    'sé',
+    'vota',
+    'deja',
+    'cierra',
+    'regístrate',
+    'suscríbete',
+    'guarda',
+    'verifica',
+    'confirma',
   ]
+  // Words that are the same in both registers when they are not an order:
+  // "{workspace} usa el inicio de sesión único" (it uses), "no se encuentra".
+  const THIRD_PERSON: Record<string, string[]> = {
+    'portal.auth.sso.usesSSONamed': ['usa'],
+    'portal.auth.sso.usesSSO': ['usa'],
+    'portal.errorPage.notFound.titleGold': ['encuentra'],
+  }
 
-  it('does not use "tú" forms', () => {
-    const offenders = USTED.filter((key) =>
-      hasWord(es[key as keyof typeof es] as string, [
-        'tú',
-        'tu',
-        'tus',
-        'tienes',
-        'puedes',
-        'quieres',
-        'escribe',
-        'inicia',
-        'crea',
-        'inténtalo',
-        'deja',
-        'envíanos',
-        'usa',
-      ])
+  it('never uses "tú" or the informal imperative', () => {
+    const offenders = EN_KEYS.filter((key) => {
+      const words = INFORMAL.filter((w) => !THIRD_PERSON[key]?.includes(w))
+      return hasWord(es[key as keyof typeof es] as string, words)
+    })
+    expect(offenders.map((key) => `${key}: ${es[key as keyof typeof es]}`)).toEqual([])
+  })
+
+  it('does not attach "te", "nos" or "me" to an informal imperative', () => {
+    // "Escríbenos", "Envíanos", "Inténtalo": the usted forms are "Escríbanos"...
+    const offenders = EN_KEYS.filter((key) =>
+      /\b(\p{L}*(?:ábelo|íbenos|íanos|éntalo|éntanos|ánate|íbete))\b/iu.test(
+        es[key as keyof typeof es] as string
+      )
     )
     expect(offenders).toEqual([])
+  })
+
+  it('writes the main sentences with "usted"', () => {
+    expect(es['widget.launcher.subtitle']).toBe('¿En qué podemos ayudarle?')
+    expect(es['portal.auth.forgot.title']).toBe('Restablezca su contraseña')
+    expect(es['portal.support.signIn.title']).toBe('Inicie sesión para ver sus conversaciones')
+    expect(es['widget.chat.startPrompt']).toBe('Envíenos un mensaje y le responderemos.')
   })
 })
 
