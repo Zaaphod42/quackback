@@ -45,7 +45,7 @@ describe('les pages d’erreur du portail', () => {
     expect(container.querySelector('img')).toBeNull()
     expect(screen.queryByText(/flown the pond/i)).toBeNull()
     const liens = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'))
-    expect(liens).toEqual(['/', 'https://diafane.com/en/aide', CONTACT_DIAFANE])
+    expect(liens).toEqual(['/', 'https://diafane.com/guides', CONTACT_DIAFANE])
   })
 
   it('parle la langue du portail quand elle est fournie', () => {
