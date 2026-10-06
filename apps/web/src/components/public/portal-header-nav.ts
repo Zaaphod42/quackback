@@ -20,24 +20,24 @@
  *
  * Un element porte SOIT `to` (une route du portail) SOIT `href` (une adresse
  * hors du portail) : c'est ce qui decide, au rendu, entre `<Link>` et `<a>`.
- * Sans cette distinction, le routeur chercherait `/en/guides` chez lui.
+ * Sans cette distinction, le routeur chercherait `/guides` chez lui.
  */
 /**
  * LES TROIS ADRESSES DE DIAFANE QUE LE PORTAIL CONNAIT. Elles vivent ici, et
  * seulement ici : une adresse recopiee dans un composant est une adresse qu'on
  * oublie de changer.
  *
- * ⚠️ LE SOMMAIRE DES GUIDES EST SOUS `/aide`, PAS SOUS `/guides`. Le segment a
- * ete renomme cote Diafane le 2026-09-22, mais la PRODUCTION sert encore
- * l'ancien : `main` y est tres en retard sur `staging`. L'ancienne adresse
- * redirige vers la nouvelle une fois la promotion faite, donc ce lien marche
- * avant ET apres ; l'inverse ne serait vrai qu'apres. La LANGUE est
- * obligatoire, il n'existe pas de `/aide` nu, et le portail est en anglais.
+ * ⚠️ LES GUIDES SONT A L'ADRESSE NUE `https://diafane.com/guides`, SANS LANGUE.
+ * C'est Diafane qui negocie la langue du visiteur et le mene a `/{langue}/guides`.
+ * Tant que la PRODUCTION de Diafane n'a pas recu cette adresse (promotion de
+ * `staging` vers `main` a venir), elle repond 404, comme l'ancienne
+ * `/en/aide` le fait deja pour le public ; elle marchera ensuite d'elle-meme,
+ * sans rien changer ici. Ne pas y remettre une langue ni l'ancien segment `/aide`.
  */
 export const DIAFANE = {
   accueil: 'https://diafane.com/',
   app: 'https://diafane.com/app',
-  guides: 'https://diafane.com/en/aide',
+  guides: 'https://diafane.com/guides',
 } as const
 
 const NAV_ITEM_GUIDES = {

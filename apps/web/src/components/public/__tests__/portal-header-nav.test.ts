@@ -10,22 +10,22 @@ const cible = (item: PortalNavItem) => (estLienExterne(item) ? item.href : item.
 describe('buildNavItems', () => {
   it('returns guides then feedback when nothing else is enabled', () => {
     const items = buildNavItems({ helpCenterEnabled: false, supportEnabled: false })
-    expect(items.map(cible)).toEqual(['https://diafane.com/en/aide', '/'])
+    expect(items.map(cible)).toEqual(['https://diafane.com/guides', '/'])
   })
 
   it('adds Help tab when help center is enabled', () => {
     const items = buildNavItems({ helpCenterEnabled: true, supportEnabled: false })
-    expect(items.map(cible)).toEqual(['https://diafane.com/en/aide', '/', '/hc'])
+    expect(items.map(cible)).toEqual(['https://diafane.com/guides', '/', '/hc'])
   })
 
   it('adds Support tab when portal support is enabled', () => {
     const items = buildNavItems({ helpCenterEnabled: false, supportEnabled: true })
-    expect(items.map(cible)).toEqual(['https://diafane.com/en/aide', '/', '/support'])
+    expect(items.map(cible)).toEqual(['https://diafane.com/guides', '/', '/support'])
   })
 
   it('orders Help before Support when both are enabled', () => {
     const items = buildNavItems({ helpCenterEnabled: true, supportEnabled: true })
-    expect(items.map(cible)).toEqual(['https://diafane.com/en/aide', '/', '/hc', '/support'])
+    expect(items.map(cible)).toEqual(['https://diafane.com/guides', '/', '/hc', '/support'])
   })
 
   // Elles etaient masquees par la feuille d'habillage. Les retirer ici ne
@@ -38,21 +38,21 @@ describe('buildNavItems', () => {
     expect(items.map(cible)).not.toContain('/changelog')
   })
 
-  // ⚠️ LE SEGMENT EST `aide`, PAS `guides`, ET C'EST VOULU : la production de
-  // Diafane sert encore l'ancien nom, le nouveau n'existant que sur `staging`.
-  // L'ancienne adresse redirige vers la nouvelle une fois la promotion faite,
-  // donc ce lien vaut avant et apres ; l'inverse ne vaudrait qu'apres, et le
-  // bouton rendait un 404 (Seb 2026-09-23 : « le bouton guides dans le header
-  // donne une 404 »). A changer le jour ou la prod porte `guides`, pas avant.
-  it('points the guides at the segment production really serves', () => {
-    expect(DIAFANE.guides).toBe('https://diafane.com/en/aide')
+  // Decision de Seb : le bouton Guides mene a l'adresse NUE `/guides`, sans langue
+  // ni ancien segment `/aide` : Diafane negocie lui-meme la langue du visiteur.
+  // Elle repond 404 tant que la production de Diafane ne l'a pas recue (comme
+  // l'ancienne `/en/aide` le fait deja pour le public), puis marche d'elle-meme.
+  it('points the guides at the bare Diafane address, which negotiates the language', () => {
+    expect(DIAFANE.guides).toBe('https://diafane.com/guides')
+    expect(DIAFANE.guides).not.toMatch(/\/(en|fr|de|es|it|nl)\//)
+    expect(DIAFANE.guides).not.toContain('/aide')
   })
 
   // Le routeur du portail chercherait cette adresse chez lui : c'est cette
   // distinction qui fait rendre un `<a>` plutot qu'un `<Link>`.
   it('marks only the guides as leaving the portal', () => {
     const items = buildNavItems({ helpCenterEnabled: true, supportEnabled: true })
-    expect(items.filter(estLienExterne).map((i) => i.href)).toEqual(['https://diafane.com/en/aide'])
+    expect(items.filter(estLienExterne).map((i) => i.href)).toEqual(['https://diafane.com/guides'])
   })
 
   // Une entree dont la cle manque aux catalogues s'affiche en anglais dans toutes
