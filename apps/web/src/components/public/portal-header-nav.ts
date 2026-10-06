@@ -54,7 +54,9 @@ const NAV_ITEM_FEEDBACK = {
 
 const NAV_ITEM_HELP = {
   to: '/hc',
-  messageId: 'portal.header.nav.help',
+  // Cle des catalogues : `portal.header.nav.help`, utilisee jusqu'ici, n'existait
+  // dans aucun, donc l'onglet restait en anglais dans toutes les langues.
+  messageId: 'portal.header.nav.helpCenter',
   defaultMessage: 'Help Center',
 } as const
 
