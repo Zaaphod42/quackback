@@ -3,6 +3,7 @@ import { CheckIcon } from '@heroicons/react/24/solid'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { cn } from '@/lib/shared/utils'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 import type { PostStatusEntity } from '@/lib/shared/db-types'
 import type { StatusId } from '@quackback/ids'
 
@@ -28,7 +29,13 @@ export function StatusDropdown({
   disabled = false,
   variant = 'badge',
 }: StatusDropdownProps): React.ReactElement {
+  const intl = useOptionalIntl()
   const [open, setOpen] = useState(false)
+  // Same wording as the comment form (both variants used to differ by a capital).
+  const noStatus = intl.formatMessage({
+    id: 'portal.commentForm.noStatus',
+    defaultMessage: 'No status',
+  })
 
   const handleStatusChange = (statusId: StatusId) => {
     onStatusChange(statusId)
@@ -51,7 +58,7 @@ export function StatusDropdown({
             {currentStatus ? (
               <StatusBadge name={currentStatus.name} color={currentStatus.color} className="mb-1" />
             ) : (
-              <span className="text-xs text-muted-foreground">No status</span>
+              <span className="text-xs text-muted-foreground">{noStatus}</span>
             )}
           </button>
         ) : (
@@ -70,7 +77,7 @@ export function StatusDropdown({
               className="h-2 w-2 rounded-full shrink-0"
               style={{ backgroundColor: currentStatus?.color || '#94a3b8' }}
             />
-            <span className="max-w-[80px] truncate">{currentStatus?.name || 'No Status'}</span>
+            <span className="max-w-[80px] truncate">{currentStatus?.name || noStatus}</span>
           </button>
         )}
       </PopoverTrigger>

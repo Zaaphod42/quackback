@@ -3,6 +3,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { CircleCheckIcon, ArrowLeftIcon } from 'lucide-react'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { WidgetVoteButton } from '@/components/widget/widget-vote-button'
 import type { PostId } from '@quackback/ids'
 import { WidgetShell } from '@/components/widget/widget-shell'
@@ -155,6 +156,7 @@ interface SuccessPost {
 }
 
 function WidgetPage() {
+  const intl = useIntl()
   const {
     posts,
     postsHasMore,
@@ -470,8 +472,18 @@ function WidgetPage() {
                   <CircleCheckIcon className="w-4.5 h-4.5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Thanks for your feedback!</p>
-                  <p className="text-[11px] text-muted-foreground">Your idea has been submitted.</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    <FormattedMessage
+                      id="widget.success.thanks"
+                      defaultMessage="Thanks for your feedback!"
+                    />
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    <FormattedMessage
+                      id="widget.success.submitted"
+                      defaultMessage="Your idea has been submitted."
+                    />
+                  </p>
                 </div>
               </div>
 
@@ -489,7 +501,12 @@ function WidgetPage() {
                       voteCount={successPost.voteCount}
                       onBeforeVote={canVote ? ensureSession : undefined}
                       noAccessReason={
-                        canVote ? undefined : "You don't have access to vote on this board"
+                        canVote
+                          ? undefined
+                          : intl.formatMessage({
+                              id: 'widget.vote.noAccess',
+                              defaultMessage: "You don't have access to vote on this board",
+                            })
                       }
                     />
                   </div>
@@ -522,7 +539,10 @@ function WidgetPage() {
                   className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-foreground bg-muted/30 hover:bg-muted/50 rounded-lg border border-border/50 transition-colors"
                 >
                   <ArrowLeftIcon className="w-3.5 h-3.5" />
-                  Back to ideas
+                  <FormattedMessage
+                    id="widget.success.backToIdeas"
+                    defaultMessage="Back to ideas"
+                  />
                 </button>
               </div>
             </div>

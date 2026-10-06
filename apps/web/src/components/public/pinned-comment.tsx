@@ -1,5 +1,5 @@
 import { MapPinIcon } from '@heroicons/react/24/solid'
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { TimeAgo } from '@/components/ui/time-ago'
@@ -13,12 +13,22 @@ interface PinnedCommentProps {
 }
 
 export function PinnedComment({ comment, workspaceName }: PinnedCommentProps) {
+  const intl = useIntl()
   return (
     <div className="[border-radius:var(--radius)] border border-primary/20 bg-primary/5 p-4">
       <div className="flex items-start gap-3">
         <Avatar className="h-10 w-10 ring-2 ring-background shadow-md">
           {comment.avatarUrl && (
-            <AvatarImage src={comment.avatarUrl} alt={comment.authorName || 'Team member'} />
+            <AvatarImage
+              src={comment.avatarUrl}
+              alt={
+                comment.authorName ||
+                intl.formatMessage({
+                  id: 'portal.pinnedComment.teamMember',
+                  defaultMessage: 'Team member',
+                })
+              }
+            />
           )}
           <AvatarFallback className="text-sm bg-primary/20 text-primary font-semibold">
             {getInitials(comment.authorName)}

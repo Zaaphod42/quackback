@@ -78,7 +78,11 @@ export function MetadataSidebarSkeleton({
 }
 
 function NoneLabel() {
-  return <span className="text-sm italic text-muted-foreground">None</span>
+  return (
+    <span className="text-sm italic text-muted-foreground">
+      <FormattedMessage id="portal.postDetail.metadata.none" defaultMessage="None" />
+    </span>
+  )
 }
 
 export interface MetadataSidebarManageActions {

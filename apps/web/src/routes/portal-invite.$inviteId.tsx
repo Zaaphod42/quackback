@@ -15,6 +15,9 @@
  *   5. Any other status → return it so the component renders a message.
  */
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { FormattedMessage, useIntl, type MessageDescriptor } from 'react-intl'
+import { PortalIntlProvider } from '@/components/portal-intl-provider'
+import { loadPortalIntl } from '@/lib/server/functions/locale'
 import {
   acceptPortalInviteFn,
   type AcceptPortalInviteResult,
@@ -32,6 +35,9 @@ type LoaderData = AcceptPortalInviteResult | { status: 'not_found' } | { status:
 // ---------------------------------------------------------------------------
 
 export const Route = createFileRoute('/portal-invite/$inviteId')({
+  // Standalone route (outside the portal layout): it loads the language and its
+  // catalog itself, so the page is translated from the server render on.
+  beforeLoad: async () => ({ intl: await loadPortalIntl() }),
   loader: async ({ params, context }): Promise<LoaderData> => {
     const { inviteId } = params
     const { session } = context
@@ -80,6 +86,17 @@ export const Route = createFileRoute('/portal-invite/$inviteId')({
 // ---------------------------------------------------------------------------
 
 function PortalInvitePage() {
+  const { intl } = Route.useRouteContext()
+
+  return (
+    <PortalIntlProvider locale={intl.locale} messages={intl.messages}>
+      <PortalInviteContent />
+    </PortalIntlProvider>
+  )
+}
+
+function PortalInviteContent() {
+  const intl = useIntl()
   const data = Route.useLoaderData()
   const { inviteId } = Route.useParams()
 
@@ -88,13 +105,13 @@ function PortalInvitePage() {
   return (
     <PageShell>
       <Card>
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+        <h1 className="text-xl font-semibold tracking-tight">{intl.formatMessage(title)}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{intl.formatMessage(body)}</p>
         <a
           href="/"
           className="mt-6 inline-block text-sm font-medium text-primary hover:underline underline-offset-4"
         >
-          Go to portal
+          <FormattedMessage id="portal.invite.goToPortal" defaultMessage="Go to portal" />
         </a>
       </Card>
     </PageShell>
@@ -104,42 +121,72 @@ function PortalInvitePage() {
 function getMessage(
   status: LoaderData['status'],
   _inviteId: string
-): { title: string; body: string } {
+): { title: MessageDescriptor; body: MessageDescriptor } {
   switch (status) {
     case 'canceled':
       return {
-        title: 'Invite revoked',
-        body: 'This invitation has been revoked. Please ask the workspace admin to send a new one.',
+        title: { id: 'portal.invite.canceled.title', defaultMessage: 'Invite revoked' },
+        body: {
+          id: 'portal.invite.canceled.body',
+          defaultMessage:
+            'This invitation has been revoked. Please ask the workspace admin to send a new one.',
+        },
       }
     case 'expired':
       return {
-        title: 'Invite expired',
-        body: 'This invitation has expired. Please ask the workspace admin to resend it.',
+        title: { id: 'portal.invite.expired.title', defaultMessage: 'Invite expired' },
+        body: {
+          id: 'portal.invite.expired.body',
+          defaultMessage:
+            'This invitation has expired. Please ask the workspace admin to resend it.',
+        },
       }
     case 'mismatch':
       return {
-        title: 'Wrong account',
-        body: 'This invite was sent to a different email address. Please sign in with the address it was sent to, then open the link again.',
+        title: { id: 'portal.invite.mismatch.title', defaultMessage: 'Wrong account' },
+        body: {
+          id: 'portal.invite.mismatch.body',
+          defaultMessage:
+            'This invite was sent to a different email address. Please sign in with the address it was sent to, then open the link again.',
+        },
       }
     case 'email_not_verified':
       return {
-        title: 'Verify your email first',
-        body: 'Your email address needs to be verified before you can accept this invitation. Please check your inbox for a verification email, then try the invite link again.',
+        title: {
+          id: 'portal.invite.emailNotVerified.title',
+          defaultMessage: 'Verify your email first',
+        },
+        body: {
+          id: 'portal.invite.emailNotVerified.body',
+          defaultMessage:
+            'Your email address needs to be verified before you can accept this invitation. Please check your inbox for a verification email, then try the invite link again.',
+        },
       }
     case 'not_found':
       return {
-        title: 'Invite not found',
-        body: 'This invitation could not be found. It may have already been used or does not exist.',
+        title: { id: 'portal.invite.notFound.title', defaultMessage: 'Invite not found' },
+        body: {
+          id: 'portal.invite.notFound.body',
+          defaultMessage:
+            'This invitation could not be found. It may have already been used or does not exist.',
+        },
       }
     case 'error':
       return {
-        title: 'Something went wrong',
-        body: 'An unexpected error occurred. Please try again later or contact the workspace admin.',
+        title: { id: 'portal.invite.error.title', defaultMessage: 'Something went wrong' },
+        body: {
+          id: 'portal.invite.error.body',
+          defaultMessage:
+            'An unexpected error occurred. Please try again later or contact the workspace admin.',
+        },
       }
     default:
       return {
-        title: 'Invite not found',
-        body: 'This invitation could not be found.',
+        title: { id: 'portal.invite.notFound.title', defaultMessage: 'Invite not found' },
+        body: {
+          id: 'portal.invite.unknown.body',
+          defaultMessage: 'This invitation could not be found.',
+        },
       }
   }
 }

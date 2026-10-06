@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useUnreadCount } from '@/lib/client/hooks/use-notifications-queries'
 import { NotificationDropdown } from './notification-dropdown'
 import { cn } from '@/lib/shared/utils'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 interface NotificationBellProps {
   className?: string
@@ -15,6 +16,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ className, popoverSide = 'right' }: NotificationBellProps) {
+  const intl = useOptionalIntl()
   const [open, setOpen] = useState(false)
   const { data: unreadCount = 0 } = useUnreadCount()
   const [shouldPulse, setShouldPulse] = useState(false)
@@ -44,7 +46,20 @@ export function NotificationBell({ className, popoverSide = 'right' }: Notificat
                 'transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 className
               )}
-              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+              aria-label={
+                unreadCount > 0
+                  ? intl.formatMessage(
+                      {
+                        id: 'portal.notifications.bellUnread',
+                        defaultMessage: 'Notifications ({count} unread)',
+                      },
+                      { count: unreadCount }
+                    )
+                  : intl.formatMessage({
+                      id: 'portal.notifications.title',
+                      defaultMessage: 'Notifications',
+                    })
+              }
             >
               <BellIcon className="h-5 w-5" />
               {unreadCount > 0 && (
@@ -64,7 +79,10 @@ export function NotificationBell({ className, popoverSide = 'right' }: Notificat
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent side={isBottomAligned ? 'bottom' : 'right'} sideOffset={8}>
-          Notifications
+          {intl.formatMessage({
+            id: 'portal.notifications.title',
+            defaultMessage: 'Notifications',
+          })}
         </TooltipContent>
       </Tooltip>
       <PopoverContent

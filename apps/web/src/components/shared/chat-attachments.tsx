@@ -1,6 +1,7 @@
 import { PaperClipIcon } from '@heroicons/react/24/outline'
 import { ZoomableImage } from '@/components/shared/zoomable-image'
 import type { ChatAttachment } from '@/lib/shared/chat/types'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 function humanSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -24,6 +25,7 @@ function isSafeUrl(url: string): boolean {
 
 /** Renders a message's attachments — images inline, other files as chips. */
 export function ChatAttachmentList({ attachments }: { attachments: ChatAttachment[] }) {
+  const intl = useOptionalIntl()
   const safe = (attachments ?? []).filter((a) => isSafeUrl(a.url))
   if (safe.length === 0) return null
   return (
@@ -47,7 +49,10 @@ export function ChatAttachmentList({ attachments }: { attachments: ChatAttachmen
             className="inline-flex items-center gap-1.5 rounded-md border border-border/50 px-2 py-1 text-xs hover:bg-muted/40"
           >
             <PaperClipIcon className="h-3.5 w-3.5 shrink-0" />
-            <span className="max-w-[180px] truncate">{a.name || 'File'}</span>
+            <span className="max-w-[180px] truncate">
+              {a.name ||
+                intl.formatMessage({ id: 'widget.chat.attachment.file', defaultMessage: 'File' })}
+            </span>
             <span className="text-muted-foreground/60">{humanSize(a.size)}</span>
           </a>
         )

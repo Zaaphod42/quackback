@@ -46,6 +46,12 @@ function icuArgNames(message: string): string[] {
   return [...names].sort()
 }
 
+// Rich-text tags of a message (`Post: <b>{title}</b>` -> "b"): a translation must
+// keep them, or the markup the component passes in would never be applied.
+function icuTagNames(message: string): string[] {
+  return [...new Set([...message.matchAll(/<\/?([a-z]+)>/g)].map((m) => m[1]))].sort()
+}
+
 // A short, product-level word may stay identical to English in a translation
 // ("Feedback", "Team", "Roadmap", "Admin", "Home", "Tag"...).
 function wordCount(text: string): number {
@@ -59,10 +65,19 @@ function hasWord(text: string, words: string[]): boolean {
   return new RegExp(`(?<![\\p{L}\\p{N}_])(?:${alternatives})(?![\\p{L}\\p{N}_])`, 'iu').test(text)
 }
 
-const SAMPLE_VALUES = (names: string[], count: number) =>
-  Object.fromEntries(
-    names.map((name) => [name, name === 'count' || name === 'seconds' ? count : `‹${name}›`])
-  )
+const SAMPLE_VALUES = (names: string[], tags: string[], count: number) => ({
+  ...Object.fromEntries(
+    names.map((name) => [name, ['count', 'seconds', 'n'].includes(name) ? count : `‹${name}›`])
+  ),
+  // Rich-text tags: the component turns them into markup, here they just wrap.
+  ...Object.fromEntries(tags.map((tag) => [tag, (chunks: string[]) => chunks.join('')])),
+})
+
+// Plural patterns whose words are the same in French and English ("vote",
+// "article"): the message is identical on purpose.
+const SAME_WORDS_AS_ENGLISH: Partial<Record<(typeof LOCALES)[number], string[]>> = {
+  fr: ['portal.vote.count', 'widget.help.articleCount'],
+}
 
 describe.each(LOCALES)('%s catalog', (locale) => {
   const catalog = CATALOGS[locale]
@@ -100,6 +115,13 @@ describe.each(LOCALES)('%s catalog', (locale) => {
     expect(mismatches).toEqual([])
   })
 
+  it('keeps the rich-text tags of the English message', () => {
+    const mismatches = EN_KEYS.filter(
+      (key) => icuTagNames(EN[key]).join('|') !== icuTagNames(catalog[key]).join('|')
+    )
+    expect(mismatches).toEqual([])
+  })
+
   it('keeps the plural structure of the English message', () => {
     const plural = EN_KEYS.filter((key) => EN[key].includes(', plural,'))
     expect(plural.length).toBeGreaterThan(0)
@@ -120,18 +142,23 @@ describe.each(LOCALES)('%s catalog', (locale) => {
       for (const count of [1, 3]) {
         const out = intl.formatMessage(
           { id: key, defaultMessage: EN[key] },
-          SAMPLE_VALUES(icuArgNames(catalog[key]), count)
+          SAMPLE_VALUES(icuArgNames(catalog[key]), icuTagNames(catalog[key]), count)
         )
         expect(typeof out, key).toBe('string')
         expect(out.trim(), key).not.toBe('')
-        expect(out, `${key} leaves a raw brace`).not.toMatch(/[{}]/)
+        expect(out, `${key} leaves a raw brace or tag`).not.toMatch(/[{}<>]/)
       }
     }
     expect(errors).toEqual([])
   })
 
   it('leaves no long message in English', () => {
-    const untranslated = EN_KEYS.filter((key) => catalog[key] === EN[key] && wordCount(EN[key]) > 2)
+    const untranslated = EN_KEYS.filter(
+      (key) =>
+        catalog[key] === EN[key] &&
+        wordCount(EN[key]) > 2 &&
+        !SAME_WORDS_AS_ENGLISH[locale]?.includes(key)
+    )
     expect(untranslated).toEqual([])
   })
 

@@ -1,6 +1,7 @@
 import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import { ZoomableImage } from '@/components/shared/zoomable-image'
 import type { ChatAttachment } from '@/lib/shared/chat/types'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 /**
  * Pending-attachment tray for the chat composer. Image attachments render as
@@ -15,6 +16,7 @@ export function ComposerAttachmentTray({
   attachments: ChatAttachment[]
   onRemove: (index: number) => void
 }) {
+  const intl = useOptionalIntl()
   if (attachments.length === 0) return null
 
   return (
@@ -33,13 +35,22 @@ export function ComposerAttachmentTray({
             ) : (
               <div className="flex h-16 w-28 items-center gap-1 rounded-md border border-border/60 bg-muted/30 px-2 text-[11px]">
                 <PaperClipIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                <span className="truncate">{a.name || 'file'}</span>
+                <span className="truncate">
+                  {a.name ||
+                    intl.formatMessage({
+                      id: 'widget.chat.attachment.file',
+                      defaultMessage: 'File',
+                    })}
+                </span>
               </div>
             )}
             <button
               type="button"
               onClick={() => onRemove(i)}
-              aria-label="Remove attachment"
+              aria-label={intl.formatMessage({
+                id: 'widget.chat.attachment.remove',
+                defaultMessage: 'Remove attachment',
+              })}
               className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground"
             >
               <XMarkIcon className="h-3 w-3" />

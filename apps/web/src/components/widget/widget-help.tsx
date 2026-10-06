@@ -152,7 +152,13 @@ export function WidgetHelp({ onArticleSelect, onCategorySelect, onOpenChat }: Wi
                         </p>
                       )}
                       <p className="text-[10px] text-muted-foreground/50 mt-1.5">
-                        {cat.articleCount} {cat.articleCount === 1 ? 'article' : 'articles'}
+                        {intl.formatMessage(
+                          {
+                            id: 'widget.help.articleCount',
+                            defaultMessage: '{count, plural, one {# article} other {# articles}}',
+                          },
+                          { count: cat.articleCount }
+                        )}
                       </p>
                     </button>
                   ))}

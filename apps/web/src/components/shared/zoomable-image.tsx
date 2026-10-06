@@ -6,6 +6,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/shared/utils'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 const MIN_SCALE = 1
 const MAX_SCALE = 5
@@ -31,6 +32,7 @@ export function ZoomableImage({
   /** Class for the <img> inside the thumbnail. */
   thumbClassName?: string
 }) {
+  const intl = useOptionalIntl()
   const [open, setOpen] = useState(false)
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -76,7 +78,14 @@ export function ZoomableImage({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={alt ? `Enlarge ${alt}` : 'Enlarge image'}
+        aria-label={
+          alt
+            ? intl.formatMessage(
+                { id: 'widget.image.enlargeNamed', defaultMessage: 'Enlarge {name}' },
+                { name: alt }
+              )
+            : intl.formatMessage({ id: 'widget.image.enlarge', defaultMessage: 'Enlarge image' })
+        }
         className={className}
       >
         <img src={src} alt={alt ?? ''} loading="lazy" className={thumbClassName} />
@@ -86,7 +95,10 @@ export function ZoomableImage({
         {/* No visible header — just the image with the built-in corner X and a
             zoom control bar below. The title stays for screen readers only. */}
         <DialogContent className="w-[92vw] max-w-[1400px] gap-2 p-3">
-          <DialogTitle className="sr-only">{alt || 'Image preview'}</DialogTitle>
+          <DialogTitle className="sr-only">
+            {alt ||
+              intl.formatMessage({ id: 'widget.image.preview', defaultMessage: 'Image preview' })}
+          </DialogTitle>
           <div
             className="relative flex max-h-[82vh] min-h-[55vh] flex-1 items-center justify-center overflow-hidden rounded-md bg-muted/20"
             style={{
@@ -119,7 +131,10 @@ export function ZoomableImage({
               type="button"
               onClick={() => zoomBy(1 / 1.5)}
               disabled={scale <= MIN_SCALE}
-              aria-label="Zoom out"
+              aria-label={intl.formatMessage({
+                id: 'widget.image.zoomOut',
+                defaultMessage: 'Zoom out',
+              })}
               className="flex size-8 items-center justify-center rounded-md hover:bg-muted disabled:opacity-40"
             >
               <MagnifyingGlassMinusIcon className="size-4" />
@@ -127,7 +142,10 @@ export function ZoomableImage({
             <button
               type="button"
               onClick={reset}
-              aria-label="Reset zoom"
+              aria-label={intl.formatMessage({
+                id: 'widget.image.zoomReset',
+                defaultMessage: 'Reset zoom',
+              })}
               className="flex h-8 min-w-14 items-center justify-center gap-1 rounded-md px-2 text-xs hover:bg-muted"
             >
               <ArrowsPointingOutIcon className="size-3.5" />
@@ -137,7 +155,10 @@ export function ZoomableImage({
               type="button"
               onClick={() => zoomBy(1.5)}
               disabled={scale >= MAX_SCALE}
-              aria-label="Zoom in"
+              aria-label={intl.formatMessage({
+                id: 'widget.image.zoomIn',
+                defaultMessage: 'Zoom in',
+              })}
               className="flex size-8 items-center justify-center rounded-md hover:bg-muted disabled:opacity-40"
             >
               <MagnifyingGlassPlusIcon className="size-4" />

@@ -5,6 +5,7 @@ import type { SettingsBrandingData } from '@/lib/server/domains/settings/setting
 import { isTeamMember, type Role } from '@/lib/shared/roles'
 import { Avatar } from './avatar'
 import { ScrollArea } from './scroll-area'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 export interface MentionItem {
   principalId: string
@@ -24,6 +25,7 @@ export interface MentionPickerHandle {
 
 export const MentionPicker = forwardRef<MentionPickerHandle, MentionPickerProps>(
   ({ items, command }, ref) => {
+    const intl = useOptionalIntl()
     const [selected, setSelected] = useState(0)
     const listRef = useRef<HTMLDivElement>(null)
     // Refs shadow state so the imperative handle (empty-deps useImperativeHandle)
@@ -40,6 +42,10 @@ export const MentionPicker = forwardRef<MentionPickerHandle, MentionPickerProps>
     const branding = ctx.settings?.brandingData
     const teamBadgeLogoUrl = branding?.logoUrl ?? null
     const teamBadgeLabel = branding?.name ?? ctx.settings?.name ?? 'Team'
+    const memberLabel = intl.formatMessage(
+      { id: 'portal.commentThread.teamBadgeAria', defaultMessage: '{name} Member' },
+      { name: teamBadgeLabel }
+    )
 
     const updateSelected = (next: number) => {
       selectedRef.current = next
@@ -95,7 +101,12 @@ export const MentionPicker = forwardRef<MentionPickerHandle, MentionPickerProps>
     return (
       <div className="mention-picker">
         {items.length === 0 ? (
-          <div className="mention-picker__empty">No people match.</div>
+          <div className="mention-picker__empty">
+            {intl.formatMessage({
+              id: 'ui.mention.noMatch',
+              defaultMessage: 'No people match.',
+            })}
+          </div>
         ) : (
           <ScrollArea className="mention-picker__scroll">
             <div role="listbox" ref={listRef} className="mention-picker__list">
@@ -121,8 +132,8 @@ export const MentionPicker = forwardRef<MentionPickerHandle, MentionPickerProps>
                   {isTeamMember(item.role) && (
                     <span
                       className="mention-picker__team-badge"
-                      aria-label={`${teamBadgeLabel} Member`}
-                      title={`${teamBadgeLabel} Member`}
+                      aria-label={memberLabel}
+                      title={memberLabel}
                     >
                       {teamBadgeLogoUrl ? (
                         <img

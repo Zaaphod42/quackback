@@ -1,8 +1,9 @@
 'use client'
 
 import { Link, useRouterState } from '@tanstack/react-router'
-import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/shared/utils'
+import { getTimeAgo } from '@/components/ui/time-ago'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 import { getNotificationTypeConfig } from './notification-type-config'
 import type { SerializedNotification } from '@/lib/client/hooks/use-notifications-queries'
 
@@ -102,6 +103,7 @@ interface ContentProps {
 }
 
 function CompactContent({ notification, icon: Icon, iconClass, bgClass, isUnread }: ContentProps) {
+  const { locale } = useOptionalIntl()
   return (
     <div
       className={cn(
@@ -126,7 +128,7 @@ function CompactContent({ notification, icon: Icon, iconClass, bgClass, isUnread
           <p className="text-xs text-muted-foreground line-clamp-2">{notification.body}</p>
         )}
         <p className="text-xs text-muted-foreground/70">
-          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+          {getTimeAgo(notification.createdAt, locale)}
         </p>
       </div>
 
@@ -136,6 +138,7 @@ function CompactContent({ notification, icon: Icon, iconClass, bgClass, isUnread
 }
 
 function FullContent({ notification, icon: Icon, iconClass, bgClass, isUnread }: ContentProps) {
+  const { locale } = useOptionalIntl()
   return (
     <div
       className={cn(
@@ -165,7 +168,7 @@ function FullContent({ notification, icon: Icon, iconClass, bgClass, isUnread }:
             )}
           </div>
           <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap flex-shrink-0 mt-0.5">
-            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+            {getTimeAgo(notification.createdAt, locale)}
           </span>
         </div>
       </div>

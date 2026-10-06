@@ -187,11 +187,20 @@ export function VisitorChatThread({
       try {
         return await uploadImage(file)
       } catch (err) {
-        setUploadError(err instanceof Error ? err.message : 'Upload failed')
+        // The hook's generic "Upload failed" is replaced by the translated
+        // message; a specific reason from the server is kept as it is.
+        setUploadError(
+          err instanceof Error && err.message && err.message !== 'Upload failed'
+            ? err.message
+            : intl.formatMessage({
+                id: 'widget.chat.upload.failed',
+                defaultMessage: "Couldn't upload that image. Please try again.",
+              })
+        )
         throw err
       }
     },
-    [uploadImage]
+    [uploadImage, intl]
   )
   // Image attachments use the shared tray (thumbnails + zoom) — same as admin.
   const {
@@ -710,7 +719,10 @@ export function VisitorChatThread({
                       type="button"
                       onClick={() => submitRating(n)}
                       className="text-lg leading-none text-muted-foreground/50 transition-colors hover:text-amber-500"
-                      aria-label={`Rate ${n} of 5`}
+                      aria-label={intl.formatMessage(
+                        { id: 'widget.chat.csat.rate', defaultMessage: 'Rate {n} of 5' },
+                        { n }
+                      )}
                     >
                       ★
                     </button>
@@ -897,7 +909,10 @@ export function VisitorChatThread({
               type="email"
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={intl.formatMessage({
+                id: 'widget.emailCapture.placeholder',
+                defaultMessage: 'you@example.com',
+              })}
               className="w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary/20"
             />
             {/* Optional mode: an explicit skip so blank-and-send is a choice,

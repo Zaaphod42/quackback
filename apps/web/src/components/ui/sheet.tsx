@@ -3,6 +3,7 @@ import * as SheetPrimitive from '@radix-ui/react-dialog'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 
 import { cn } from '@/lib/shared/utils'
+import { useOptionalIntl } from '@/lib/client/hooks/use-optional-intl'
 
 function Sheet(props: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -46,6 +47,7 @@ function SheetContent({
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: 'top' | 'right' | 'bottom' | 'left'
 }) {
+  const intl = useOptionalIntl()
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -77,7 +79,9 @@ function SheetContent({
           )}
         >
           <XMarkIcon className="size-4" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">
+            {intl.formatMessage({ id: 'ui.dialog.close', defaultMessage: 'Close' })}
+          </span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>
     </SheetPortal>

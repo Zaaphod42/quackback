@@ -30,7 +30,7 @@ const laggingLocales = localesToCheck.filter((l) => !COMPLETE_LOCALES.includes(l
 // message ids that were added to English for the Diafane languages only).
 // It may only go down. A new English key makes it go up: translate it into the
 // lagging catalogs, or raise this number on purpose.
-const LAGGING_GAP_MAX = 73
+const LAGGING_GAP_MAX = 211
 
 // Collect the top-level ICU argument names in a message: `{name}` -> "name",
 // `{count, plural, ...}` -> "count". Branch keywords (plural/one/other) and the
