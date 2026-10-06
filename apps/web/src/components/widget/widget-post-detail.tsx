@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChatBubbleLeftIcon, Squares2X2Icon } from '@heroicons/react/24/solid'
+import { MessageSquareIcon, TagIcon } from 'lucide-react'
 import { useIntl, FormattedMessage } from 'react-intl'
 import { TimeAgo } from '@/components/ui/time-ago'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -219,7 +219,7 @@ export function WidgetPostDetail({ postId, statuses }: WidgetPostDetailProps) {
               <TimeAgo date={post.createdAt} />
               <span className="text-muted-foreground/30">&middot;</span>
               <span className="inline-flex items-center gap-0.5">
-                <Squares2X2Icon className="h-3 w-3 text-muted-foreground/40" />
+                <TagIcon className="h-3 w-3 text-muted-foreground/40" />
                 {post.board.name}
               </span>
             </div>
@@ -261,7 +261,7 @@ export function WidgetPostDetail({ postId, statuses }: WidgetPostDetailProps) {
         {/* Comments section */}
         <div className="border-t border-border/50 pt-3">
           <div className="flex items-center gap-1.5 mb-3">
-            <ChatBubbleLeftIcon className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <MessageSquareIcon className="h-3.5 w-3.5 text-muted-foreground/50" />
             <span className="text-xs font-medium text-muted-foreground">
               <FormattedMessage
                 id="widget.postDetail.comments"

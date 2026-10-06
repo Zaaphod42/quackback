@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, memo, useRef, useState } from 'react'
 import { usePillsScroll } from '@/lib/client/hooks/use-pills-scroll'
-import { Squares2X2Icon, PencilIcon } from '@heroicons/react/24/solid'
 import {
-  LightBulbIcon,
-  MagnifyingGlassIcon,
-  XMarkIcon,
+  TagIcon,
+  PencilIcon,
+  LightbulbIcon,
+  SearchIcon,
+  XIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from '@heroicons/react/24/outline'
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useIntl, FormattedMessage } from 'react-intl'
@@ -112,7 +113,7 @@ const WidgetPostRow = memo(
     const status = post.statusId ? (statusMap.get(post.statusId) ?? null) : null
     return (
       <div
-        className={`w-full overflow-hidden flex items-center gap-2 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer ${compact ? 'px-1.5 py-1' : 'px-2 py-1.5'}`}
+        className={`w-full overflow-hidden flex items-center gap-2.5 border-b border-border/60 last:border-b-0 hover:bg-muted/40 transition-colors cursor-pointer ${compact ? 'px-1 py-1.5' : 'px-1 py-3'}`}
         onClick={onSelect}
       >
         <div onClick={(e) => e.stopPropagation()} className="shrink-0">
@@ -147,8 +148,8 @@ const WidgetPostRow = memo(
               </span>
             )}
             {showBoard && post.board && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground/60">
-                <Squares2X2Icon className="h-2.5 w-2.5 text-muted-foreground/40" />
+              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
+                <TagIcon className="h-3 w-3" />
                 {post.board.name}
               </span>
             )}
@@ -533,7 +534,7 @@ export function WidgetHomeAnimated({
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
         <div className="w-full px-3 pt-2 pb-3">
           <motion.div
-            className="rounded-lg border border-border bg-card overflow-hidden"
+            className="rounded-xl border border-border bg-card overflow-hidden"
             initial={false}
             animate={{
               boxShadow: expanded
@@ -591,9 +592,9 @@ export function WidgetHomeAnimated({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8, width: 0, marginRight: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center"
+                    className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
                   >
-                    <PencilIcon className="w-3.5 h-3.5 text-primary" />
+                    <PencilIcon className="w-3.5 h-3.5" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -680,13 +681,13 @@ export function WidgetHomeAnimated({
                         >
                           <div className="px-3 pb-2">
                             <p className="text-[11px] font-medium text-muted-foreground/60 flex items-center gap-1 mb-1.5">
-                              <LightBulbIcon className="w-3 h-3" />
+                              <LightbulbIcon className="w-3 h-3" />
                               <FormattedMessage
                                 id="widget.home.similar.heading"
                                 defaultMessage="Similar ideas"
                               />
                             </p>
-                            <div className="space-y-0.5">
+                            <div className="flex flex-col">
                               {similarPostResults.posts.slice(0, 3).map((post) => (
                                 <WidgetPostRow
                                   key={post.id}
@@ -828,7 +829,7 @@ export function WidgetHomeAnimated({
             <div className="flex items-center justify-between px-1 h-7">
               {popularSearchOpen ? (
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <MagnifyingGlassIcon className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                  <SearchIcon className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
                   <input
                     ref={popularSearchInputRef}
                     type="text"
@@ -848,12 +849,12 @@ export function WidgetHomeAnimated({
                     onClick={() => setPopularSearchOpen(false)}
                     className="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors"
                   >
-                    <XMarkIcon className="w-3 h-3" />
+                    <XIcon className="w-3 h-3" />
                   </button>
                 </div>
               ) : (
                 <>
-                  <p className="text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wide">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                     <FormattedMessage
                       id="widget.home.popular.heading"
                       defaultMessage="Popular ideas"
@@ -862,13 +863,13 @@ export function WidgetHomeAnimated({
                   <button
                     type="button"
                     onClick={() => setPopularSearchOpen(true)}
-                    className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
                     aria-label={intl.formatMessage({
                       id: 'widget.home.popular.search.aria',
                       defaultMessage: 'Search ideas',
                     })}
                   >
-                    <MagnifyingGlassIcon className="w-3.5 h-3.5" />
+                    <SearchIcon className="w-3.5 h-3.5" />
                   </button>
                 </>
               )}
@@ -942,7 +943,7 @@ export function WidgetHomeAnimated({
                   popularSearch === debouncedPopularSearch &&
                   (popularSearchData?.posts.length ?? 0) === 0 && (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <MagnifyingGlassIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                      <SearchIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
                       <p className="text-sm font-medium text-muted-foreground/70">
                         <FormattedMessage
                           id="widget.home.popular.search.noResults"
@@ -960,7 +961,7 @@ export function WidgetHomeAnimated({
                 {!isPopularSearchFetching &&
                   popularSearch === debouncedPopularSearch &&
                   (popularSearchData?.posts.length ?? 0) > 0 && (
-                    <div className="space-y-0.5">
+                    <div className="flex flex-col">
                       {popularSearchData!.posts.map((post) => (
                         <WidgetPostRow
                           key={post.id}
@@ -993,7 +994,7 @@ export function WidgetHomeAnimated({
                 )}
                 {!isFetchingPosts && allPopularPosts.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <LightBulbIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                    <LightbulbIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
                     <p className="text-sm font-medium text-muted-foreground/70">
                       {activeBoardSlug ? (
                         <FormattedMessage
@@ -1018,7 +1019,7 @@ export function WidgetHomeAnimated({
                   </div>
                 )}
                 {allPopularPosts.length > 0 && (
-                  <div className="space-y-0.5">
+                  <div className="flex flex-col">
                     {allPopularPosts.map((post) => (
                       <WidgetPostRow
                         key={post.id}

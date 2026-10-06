@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { FormattedMessage } from 'react-intl'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ChevronRightIcon } from '@heroicons/react/24/solid'
+import { ChevronRightIcon } from 'lucide-react'
 import { publicHelpCenterQueries } from '@/lib/client/queries/help-center'
 import { CategoryIcon } from '@/components/help-center/category-icon'
 

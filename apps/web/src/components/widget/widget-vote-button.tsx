@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react'
-import { ChevronUpIcon } from '@heroicons/react/24/solid'
+import { ChevronUpIcon } from 'lucide-react'
 import { useIntl } from 'react-intl'
 import { useWidgetVote } from '@/lib/client/hooks/use-widget-vote'
 import { useWidgetAuth } from './widget-auth-provider'
@@ -88,17 +88,15 @@ export function WidgetVoteButton({
       onClick={handleClick}
       disabled={isPending}
       className={cn(
-        'relative flex items-center justify-center border rounded-md',
-        compact ? 'flex-row gap-1 py-1.5 px-2.5 text-xs' : 'flex-col w-12 py-2 gap-0.5',
+        'relative flex items-center justify-center border rounded-full',
+        compact ? 'flex-row gap-1 py-1.5 px-2.5 text-xs' : 'flex-col w-11 py-2 gap-0.5',
         'group transition-colors duration-200',
         !noAccessReason && 'cursor-pointer',
         hasVoted
           ? 'border-post-card-voted/60 bg-post-card-voted/15 text-post-card-voted'
-          : 'bg-muted/40 text-muted-foreground border-border/50',
+          : 'bg-card text-foreground border-border',
         // Hover affordances only when the button is actionable (not denied).
-        !hasVoted &&
-          !noAccessReason &&
-          'hover:border-border hover:bg-muted/60 hover:text-foreground/80',
+        !hasVoted && !noAccessReason && 'hover:bg-muted',
         isPending && 'opacity-70 cursor-wait',
         noAccessReason && 'cursor-not-allowed opacity-60'
       )}

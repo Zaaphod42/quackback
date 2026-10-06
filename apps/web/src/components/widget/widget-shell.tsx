@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowLeftIcon,
-  XMarkIcon,
-  HomeIcon,
-  LightBulbIcon,
+  XIcon,
+  HouseIcon,
+  LightbulbIcon,
   NewspaperIcon,
-  QuestionMarkCircleIcon,
-  ArrowTopRightOnSquareIcon,
-} from '@heroicons/react/24/solid'
+  CircleHelpIcon,
+  ExternalLinkIcon,
+} from 'lucide-react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { cn } from '@/lib/shared/utils'
 import { Avatar } from '@/components/ui/avatar'
@@ -21,14 +21,14 @@ export type { WidgetTab }
 
 const TAB_CONFIG: {
   tab: WidgetTab
-  icon: typeof LightBulbIcon
+  icon: typeof LightbulbIcon
   labelId: string
   defaultLabel: string
 }[] = [
-  { tab: 'home', icon: HomeIcon, labelId: 'widget.shell.tab.home', defaultLabel: 'Home' },
+  { tab: 'home', icon: HouseIcon, labelId: 'widget.shell.tab.home', defaultLabel: 'Home' },
   {
     tab: 'feedback',
-    icon: LightBulbIcon,
+    icon: LightbulbIcon,
     labelId: 'widget.shell.tab.feedback',
     defaultLabel: 'Feedback',
   },
@@ -40,7 +40,7 @@ const TAB_CONFIG: {
   },
   {
     tab: 'help',
-    icon: QuestionMarkCircleIcon,
+    icon: CircleHelpIcon,
     labelId: 'widget.shell.tab.help',
     defaultLabel: 'Help',
   },
@@ -124,21 +124,21 @@ export function WidgetShell({
   }, [])
 
   return (
-    <div className="flex flex-col h-full bg-background text-foreground overflow-x-hidden">
-      <div className="relative flex items-center justify-between gap-2 px-4 py-3 shrink-0">
+    <div className="flex flex-col h-full bg-card text-foreground overflow-x-hidden">
+      <div className="relative flex items-center justify-between gap-2 px-4 py-3 shrink-0 border-b border-border">
         {/* Left: back button on detail views. */}
         <div className="flex items-center gap-1">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card hover:bg-muted transition-colors"
               aria-label={intl.formatMessage({
                 id: 'widget.shell.aria.goBack',
                 defaultMessage: 'Go back',
               })}
             >
-              <ArrowLeftIcon className="w-5 h-5 text-muted-foreground" />
+              <ArrowLeftIcon className="w-4 h-4 text-foreground" />
             </button>
           )}
         </div>
@@ -176,20 +176,20 @@ export function WidgetShell({
               })}
             >
               <FormattedMessage id="widget.shell.goToPortal" defaultMessage="Portal" />
-              <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+              <ExternalLinkIcon className="w-3.5 h-3.5" />
             </button>
           )}
           {user && <UserAvatarPopover user={user} />}
           <button
             type="button"
             onClick={closeWidget}
-            className="flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card hover:bg-muted transition-colors"
             aria-label={intl.formatMessage({
               id: 'widget.shell.aria.close',
               defaultMessage: 'Close feedback widget',
             })}
           >
-            <XMarkIcon className="w-5 h-5 text-muted-foreground" />
+            <XIcon className="w-4 h-4 text-foreground" />
           </button>
         </div>
       </div>
@@ -207,7 +207,7 @@ export function WidgetShell({
 
       {/* Bottom tab bar + footer */}
       <div
-        className="border-t border-border/40 shrink-0"
+        className="border-t border-border shrink-0"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {showTabBar && (
@@ -224,8 +224,8 @@ export function WidgetShell({
                   className={cn(
                     'flex-1 flex flex-col items-center gap-0.5 py-2 transition-colors',
                     activeTab === tab
-                      ? 'text-primary'
-                      : 'text-muted-foreground/60 hover:text-muted-foreground'
+                      ? 'text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <Icon className="w-5 h-5" />

@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  ArrowUturnLeftIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  FaceSmileIcon,
-  MapPinIcon,
-} from '@heroicons/react/24/solid'
+import { Undo2Icon, ChevronDownIcon, ChevronRightIcon, SmileIcon, MapPinIcon } from 'lucide-react'
 import { useIntl, FormattedMessage } from 'react-intl'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -318,7 +312,7 @@ function WidgetCommentItem({
                 disabled={reactionPending}
                 className="h-5 w-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground transition-colors"
               >
-                <FaceSmileIcon className="h-3.5 w-3.5" />
+                <SmileIcon className="h-3.5 w-3.5" />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-1.5" align="start">
@@ -343,7 +337,7 @@ function WidgetCommentItem({
               onClick={() => setShowReplyForm(!showReplyForm)}
               className="inline-flex items-center gap-0.5 h-5 px-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
             >
-              <ArrowUturnLeftIcon className="h-2.5 w-2.5" />
+              <Undo2Icon className="h-2.5 w-2.5" />
               <FormattedMessage id="widget.commentList.reply" defaultMessage="Reply" />
             </button>
           )}
