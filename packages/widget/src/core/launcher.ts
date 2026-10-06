@@ -1,5 +1,9 @@
+import { widgetLabels } from './labels'
+
 export interface LauncherOptions {
   placement: 'left' | 'right'
+  /** `locale` init option, for the accessible name; the browser language otherwise. */
+  locale?: string
   onClick: () => void
 }
 
@@ -28,6 +32,7 @@ const CLOSE_ICON =
   '<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 
 export function createLauncher(opts: LauncherOptions): LauncherHandle {
+  const labels = widgetLabels(opts.locale)
   let bg = DEFAULT_BG
   let fg = DEFAULT_FG
 
@@ -56,7 +61,7 @@ export function createLauncher(opts: LauncherOptions): LauncherHandle {
     transition:
       'opacity 450ms ease, transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease, color 200ms ease',
   })
-  btn.setAttribute('aria-label', 'Open feedback widget')
+  btn.setAttribute('aria-label', labels.open)
   btn.setAttribute('aria-expanded', 'false')
 
   const wrapper = document.createElement('div')
@@ -112,7 +117,7 @@ export function createLauncher(opts: LauncherOptions): LauncherHandle {
     el: btn,
     setOpen(open) {
       btn.setAttribute('aria-expanded', open ? 'true' : 'false')
-      btn.setAttribute('aria-label', open ? 'Close feedback widget' : 'Open feedback widget')
+      btn.setAttribute('aria-label', open ? labels.close : labels.open)
       iconChat.style.opacity = open ? '0' : '1'
       iconChat.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)'
       iconClose.style.opacity = open ? '1' : '0'

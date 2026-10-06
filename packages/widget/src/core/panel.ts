@@ -1,4 +1,5 @@
 import { ensureStyles } from './style'
+import { widgetLabels } from './labels'
 
 export interface PanelOptions {
   /** Widget URL — e.g. "https://feedback.acme.com/widget". */
@@ -43,7 +44,7 @@ export function createPanel(opts: PanelOptions): PanelHandle {
     colorScheme: 'normal',
   })
   iframe.setAttribute('src', url)
-  iframe.setAttribute('title', 'Feedback Widget')
+  iframe.setAttribute('title', widgetLabels(opts.locale).frame)
   iframe.setAttribute(
     'sandbox',
     'allow-scripts allow-forms allow-same-origin allow-popups allow-downloads'
