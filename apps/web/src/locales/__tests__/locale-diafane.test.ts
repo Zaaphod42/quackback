@@ -1,15 +1,18 @@
 import { describe, it, expect } from 'vitest'
 import { createIntl, createIntlCache } from 'react-intl'
 import en from '../en.json'
+import fr from '../fr.json'
+import de from '../de.json'
+import es from '../es.json'
 import it_ from '../it.json'
 import nl from '../nl.json'
 import { SUPPORTED_LOCALES } from '@/lib/shared/i18n'
 
 /**
- * Validation of the Italian and Dutch catalogs, on top of the generic parity
- * test in `locale-parity.test.ts` (which covers every supported locale for keys
- * and placeholder names). This file adds what only matters for catalogs written
- * by hand from the English one:
+ * Validation of the six languages of the Diafane portal (en, fr, de, es, it,
+ * nl), on top of the generic parity test in `locale-parity.test.ts`. The other
+ * catalogs come from upstream and may lag behind English; these six are
+ * written for Diafane and must be COMPLETE and well formed:
  *
  *  - the key set is IDENTICAL to en.json (nothing missing, nothing stale);
  *  - every message is valid ICU and formats through react-intl, singular AND
@@ -18,13 +21,15 @@ import { SUPPORTED_LOCALES } from '@/lib/shared/i18n'
  *  - the placeholders (including the plural arguments) are the English ones;
  *  - nothing was left in English (a copy of the English text is only accepted
  *    for short product words such as "Feedback" or "Roadmap");
- *  - the register chosen for each language holds: no "tu/tuo/Lei" in Italian,
- *    no "je/jij/jouw" in Dutch, and no em dash anywhere.
+ *  - the register chosen for each language holds: spacing of the French
+ *    punctuation, no "tu" in French or "du" in German, no "tu/tuo/Lei" in
+ *    Italian, no "je/jij/jouw" in Dutch, and no em dash anywhere.
  */
 
 type Catalog = Record<string, string>
 
-const CATALOGS: Record<'it' | 'nl', Catalog> = { it: it_, nl }
+const CATALOGS = { fr, de, es, it: it_, nl } as Record<'fr' | 'de' | 'es' | 'it' | 'nl', Catalog>
+const LOCALES = Object.keys(CATALOGS) as Array<keyof typeof CATALOGS>
 const EN = en as Catalog
 const EN_KEYS = Object.keys(EN)
 
@@ -47,12 +52,19 @@ function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length
 }
 
+// Whole-word match that understands accented letters (the plain \b of
+// JavaScript treats "Ê" as a non-letter, so "Êtes" would match "tes").
+function hasWord(text: string, words: string[]): boolean {
+  const alternatives = words.map((w) => w.replace(/'/g, "['’]")).join('|')
+  return new RegExp(`(?<![\\p{L}\\p{N}_])(?:${alternatives})(?![\\p{L}\\p{N}_])`, 'iu').test(text)
+}
+
 const SAMPLE_VALUES = (names: string[], count: number) =>
   Object.fromEntries(
     names.map((name) => [name, name === 'count' || name === 'seconds' ? count : `‹${name}›`])
   )
 
-describe.each(['it', 'nl'] as const)('%s catalog', (locale) => {
+describe.each(LOCALES)('%s catalog', (locale) => {
   const catalog = CATALOGS[locale]
 
   it('is registered in the supported locales', () => {
@@ -136,13 +148,118 @@ describe.each(['it', 'nl'] as const)('%s catalog', (locale) => {
   })
 })
 
+describe('English catalog', () => {
+  it('has no em dash', () => {
+    expect(EN_KEYS.filter((key) => EN[key].includes('—'))).toEqual([])
+  })
+})
+
+describe('French register and typography', () => {
+  const NBSP = ' '
+
+  // Espace insécable avant « : ; ! ? » et à l'intérieur des guillemets français.
+  it('puts a no-break space before : ; ! ? and inside guillemets', () => {
+    const offenders = EN_KEYS.filter((key) => {
+      const value = fr[key as keyof typeof fr] as string
+      return /\S [?!:;]/.test(value) || /« | »/.test(value)
+    })
+    expect(offenders.map((key) => `${key}: ${JSON.stringify(fr[key as keyof typeof fr])}`)).toEqual(
+      []
+    )
+  })
+
+  it('actually uses the no-break space where the punctuation requires it', () => {
+    expect(fr['widget.launcher.subtitle']).toBe(`Comment pouvons-nous vous aider${NBSP}?`)
+    expect(fr['widget.chat.csat.thanks']).toBe(`Merci pour votre feedback${NBSP}!`)
+    expect(fr['portal.postDetail.deleteDialog.description']).toContain(`«${NBSP}{title}${NBSP}»`)
+  })
+
+  it('addresses the user with "vous", never "tu"', () => {
+    const offenders = EN_KEYS.filter((key) =>
+      hasWord(fr[key as keyof typeof fr] as string, ['tu', 'ton', 'ta', 'tes', 'toi', "t'"])
+    )
+    expect(offenders).toEqual([])
+  })
+})
+
+describe('German register', () => {
+  it('addresses the user with "Sie", never "du"', () => {
+    const offenders = EN_KEYS.filter((key) =>
+      hasWord(de[key as keyof typeof de] as string, [
+        'du',
+        'dein',
+        'deine',
+        'deinen',
+        'deinem',
+        'deiner',
+        'dir',
+        'dich',
+      ])
+    )
+    expect(offenders).toEqual([])
+  })
+})
+
+describe('Spanish register of the keys added for Diafane', () => {
+  // The new keys are written with "usted". (The older Spanish keys come from
+  // upstream, in the informal register; they are not covered here.)
+  const USTED = [
+    'portal.auth.noMethods',
+    'portal.auth.private.loginTagline',
+    'portal.auth.private.loginTitle',
+    'portal.auth.private.loginTitleGeneric',
+    'portal.auth.private.signupTagline',
+    'widget.chat.closedReopen',
+    'widget.chat.startPrompt',
+    'widget.chat.placeholder',
+    'widget.chat.upload.failed',
+    'widget.commentForm.errorPost',
+    'widget.shell.goToPortal.error',
+  ]
+
+  it('does not use "tú" forms', () => {
+    const offenders = USTED.filter((key) =>
+      hasWord(es[key as keyof typeof es] as string, [
+        'tú',
+        'tu',
+        'tus',
+        'tienes',
+        'puedes',
+        'quieres',
+        'escribe',
+        'inicia',
+        'crea',
+        'inténtalo',
+        'deja',
+        'envíanos',
+        'usa',
+      ])
+    )
+    expect(offenders).toEqual([])
+  })
+})
+
 describe('Italian register', () => {
   // The interface never says "tu" and never uses the courtesy "Lei": buttons
   // are imperatives without possessive, sentences are impersonal.
-  const FORBIDDEN = /\b(tu|tuo|tua|tuoi|tue|ti|te|Lei|hai|puoi|vuoi|devi|sei)\b/i
+  const FORBIDDEN = [
+    'tu',
+    'tuo',
+    'tua',
+    'tuoi',
+    'tue',
+    'ti',
+    'te',
+    'Lei',
+    'hai',
+    'puoi',
+    'vuoi',
+    'devi',
+    'sei',
+  ]
 
   it('never addresses the user in the second person or with the courtesy form', () => {
-    const offenders = EN_KEYS.filter((key) => FORBIDDEN.test(CATALOGS.it[key]))
+    const offenders = EN_KEYS.filter((key) => hasWord(CATALOGS.it[key], FORBIDDEN))
     expect(offenders.map((key) => `${key}: ${CATALOGS.it[key]}`)).toEqual([])
   })
 
@@ -153,15 +270,16 @@ describe('Italian register', () => {
     expect(it['portal.postDetail.edit.save']).toBe('Salva')
     expect(it['portal.feedback.header.submit']).toBe('Invia')
     expect(it['widget.home.form.cancel']).toBe('Annulla')
+    expect(it['widget.chat.send']).toBe('Invia')
   })
 })
 
 describe('Dutch register', () => {
   // "u/uw" only: never "je/jij/jouw".
-  const FORBIDDEN = /\b(je|jij|jouw|jou|jullie|jouwe)\b/i
+  const FORBIDDEN = ['je', 'jij', 'jouw', 'jou', 'jullie', 'jouwe']
 
   it('never uses the informal second person', () => {
-    const offenders = EN_KEYS.filter((key) => FORBIDDEN.test(CATALOGS.nl[key]))
+    const offenders = EN_KEYS.filter((key) => hasWord(CATALOGS.nl[key], FORBIDDEN))
     expect(offenders.map((key) => `${key}: ${CATALOGS.nl[key]}`)).toEqual([])
   })
 
@@ -172,6 +290,7 @@ describe('Dutch register', () => {
     expect(nlCatalog['portal.postDetail.edit.save']).toBe('Opslaan')
     expect(nlCatalog['portal.feedback.header.submit']).toBe('Verzenden')
     expect(nlCatalog['widget.home.form.cancel']).toBe('Annuleren')
+    expect(nlCatalog['widget.chat.send']).toBe('Verzenden')
   })
 })
 
@@ -189,8 +308,16 @@ describe('Diafane additions to the portal', () => {
     'portal.errorPage.links.contact',
   ]
 
-  it.each(['it', 'nl'] as const)('%s translates them', (locale) => {
-    for (const key of KEYS) expect(CATALOGS[locale][key], key).not.toBe(EN[key])
+  // "Guides" is also the French word: it stays identical there.
+  const SAME_AS_ENGLISH: Partial<Record<(typeof LOCALES)[number], string[]>> = {
+    fr: ['portal.header.nav.guides'],
+  }
+
+  it.each(LOCALES)('%s translates them', (locale) => {
+    for (const key of KEYS) {
+      if (SAME_AS_ENGLISH[locale]?.includes(key)) continue
+      expect(CATALOGS[locale][key], key).not.toBe(EN[key])
+    }
   })
 
   it('uses the words of the Diafane application itself', () => {
