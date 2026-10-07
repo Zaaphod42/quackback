@@ -40,6 +40,22 @@ export const DIAFANE = {
   guides: 'https://diafane.com/guides',
 } as const
 
+/**
+ * L'ADRESSE DE CONTACT DE DIAFANE, en deux morceaux qui ne se rejoignent qu'au
+ * clic (Seb 2026-10-07, pastille « Un bug ? Une question ? »).
+ *
+ * C'est la meme regle que dans Diafane (`resources/js/marketing/contactEmail.js`) :
+ * aucune adresse ecrite en clair dans le HTML rendu par le serveur, que les
+ * moissonneurs d'adresses lisent sans monter le JavaScript. Le `mailto:` ne se
+ * pose donc jamais dans un `href`.
+ */
+const CONTACT = { utilisateur: 'hello', domaine: 'diafane.com' } as const
+
+/** Ouvre la messagerie du visiteur vers l'adresse de contact de Diafane. */
+export function ouvrirCourrielDiafane(): void {
+  window.location.href = `mailto:${CONTACT.utilisateur}@${CONTACT.domaine}`
+}
+
 const NAV_ITEM_GUIDES = {
   href: DIAFANE.guides,
   messageId: 'portal.header.nav.guides',

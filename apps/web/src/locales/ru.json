@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "Выйти",
   "portal.header.auth.settings": "Настройки",
   "portal.header.auth.admin": "Админ",
+  "portal.bugPill.label": "Ошибка? Вопрос?",
   "portal.header.theme.toggleLabel": "Переключить тему",
   "portal.header.theme.system": "Системная",
   "portal.header.theme.light": "Светлая",

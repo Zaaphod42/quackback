@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "Sair",
   "portal.header.auth.settings": "Configurações",
   "portal.header.auth.admin": "Admin",
+  "portal.bugPill.label": "Um erro? Uma dúvida?",
   "portal.header.theme.toggleLabel": "Alternar tema",
   "portal.header.theme.system": "Sistema",
   "portal.header.theme.light": "Claro",

@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "Afmelden",
   "portal.header.auth.settings": "Instellingen",
   "portal.header.auth.admin": "Beheer",
+  "portal.bugPill.label": "Een fout? Een vraag?",
   "portal.header.theme.toggleLabel": "Thema wisselen",
   "portal.header.theme.system": "Systeem",
   "portal.header.theme.light": "Licht",

@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "Esci",
   "portal.header.auth.settings": "Impostazioni",
   "portal.header.auth.admin": "Admin",
+  "portal.bugPill.label": "Un problema? Una domanda?",
   "portal.header.theme.toggleLabel": "Cambia tema",
   "portal.header.theme.system": "Sistema",
   "portal.header.theme.light": "Chiaro",

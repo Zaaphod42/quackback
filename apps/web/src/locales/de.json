@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "Abmelden",
   "portal.header.auth.settings": "Einstellungen",
   "portal.header.auth.admin": "Administration",
+  "portal.bugPill.label": "Ein Fehler? Eine Frage?",
   "portal.header.theme.toggleLabel": "Design wechseln",
   "portal.header.theme.system": "System",
   "portal.header.theme.light": "Hell",
