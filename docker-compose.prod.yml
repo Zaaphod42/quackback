@@ -135,6 +135,51 @@ services:
       timeout: 5s
       retries: 5
 
+  # ⭐ DIAFANE : LA SAUVEGARDE DE LA BASE (2026-10-07). Chaque nuit, une copie
+  # de la base part, chiffree par restic, dans un compartiment Scaleway a part ;
+  # chaque lundi, la derniere copie est restauree dans une base d'essai pour
+  # prouver qu'elle se relit. Le fonctionnement est en tete de
+  # docker/sauvegarde/sauvegarder.sh, la sauvegarde a la main aussi
+  # (`sauvegarder maintenant <etiquette>` dans le terminal de ce conteneur).
+  #
+  # ⚠️ AUCUNE VARIABLE EN `${VAR:?}` DANS CE SERVICE : une variable manquante y
+  # ferait refuser le demarrage de TOUTE la pile, portail compris. Le script
+  # dit lui-meme ce qui manque, dans son journal et sur Telegram.
+  #
+  # ⚠️ PAS D'`env_file` NON PLUS : le service ne recoit que ce qui suit. Les
+  # noms `SAUVEGARDE_*` de Coolify deviennent ici les noms qu'attend restic.
+  # Poses tels quels dans Coolify (`AWS_ACCESS_KEY_ID`...), ils arriveraient
+  # aussi dans l'application par son `env_file`, sous les noms que la chaine
+  # d'identifiants par defaut du SDK AWS lit d'elle-meme : aujourd'hui le
+  # stockage passe ses propres identifiants, mais un module qui ne le ferait
+  # pas ecrirait avec la cle des sauvegardes.
+  #
+  # L'application ne depend PAS de ce service : s'il ne demarre pas, le portail
+  # demarre quand meme.
+  sauvegarde:
+    build:
+      context: ./docker/sauvegarde
+      dockerfile: Dockerfile
+    container_name: quackback-sauvegarde
+    restart: unless-stopped
+    init: true
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-quackback}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-}
+      PGDATABASE: ${POSTGRES_DB:-quackback}
+      RESTIC_REPOSITORY: ${SAUVEGARDE_DEPOT:-s3:s3.fr-par.scw.cloud/diafane-feedback-sauvegardes/base}
+      RESTIC_PASSWORD: ${SAUVEGARDE_MOT_DE_PASSE:-}
+      AWS_ACCESS_KEY_ID: ${SAUVEGARDE_CLE_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${SAUVEGARDE_CLE_SECRETE:-}
+      AWS_DEFAULT_REGION: fr-par
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      SAUVEGARDE_HEURE: ${SAUVEGARDE_HEURE:-02:30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   # L'ancien stockage MinIO, garde tel quel depuis le passage a Scaleway
