@@ -4,32 +4,27 @@ export const Route = createFileRoute('/robots.txt')({
   server: {
     handlers: {
       GET: async () => {
-        const [{ config }, { isFeatureEnabled, getHelpCenterConfig }] = await Promise.all([
-          import('@/lib/server/config'),
-          import('@/lib/server/domains/settings/settings.service'),
-        ])
-        const baseUrl = config.baseUrl
-
-        const helpCenterConfig = await getHelpCenterConfig()
-        const helpCenterEnabled = await isFeatureEnabled('helpCenter')
-        // Indexing toggle (domains/languages §1): off means neither crawlable
-        // nor advertised via a sitemap link.
-        const helpCenterIndexable = helpCenterEnabled && helpCenterConfig.seo?.indexable !== false
-
-        const lines = [
-          'User-agent: *',
-          'Allow: /',
-          'Disallow: /admin/',
-          'Disallow: /auth/',
-          'Disallow: /onboarding/',
-          'Disallow: /api/',
-          'Disallow: /widget',
-          ...(helpCenterEnabled && !helpCenterIndexable ? ['Disallow: /hc'] : []),
-          '',
-          `Sitemap: ${baseUrl}/sitemap.xml`,
-          ...(helpCenterIndexable ? [`Sitemap: ${baseUrl}/hc/sitemap.xml`] : []),
-        ]
-        const body = lines.join('\n') + '\n'
+        // DIAFANE : le portail ne se refere pas. Les idees restent LISIBLES
+        // sans compte (decision D3), elles cessent seulement d'etre indexees
+        // (decision de Seb du 2026-09-22 : « feedback n'a pas besoin d'etre
+        // reference, mais les guides oui, absolument »). Les guides vivent sur
+        // diafane.com, et c'est la que l'autorite doit s'accumuler : un second
+        // site qui sort sur une recherche de marque avec seize idees en anglais
+        // fait moins bonne impression que rien du tout.
+        //
+        // La ligne `Sitemap:` part AVEC : sans elle, plus rien n'annonce
+        // l'accueil, la feuille de route ni chaque idee (`/b/{tableau}/posts/{id}`).
+        // La garder tout en refusant l'exploration serait une contradiction.
+        //
+        // Depuis la 0.14, l'amont lit ici l'interrupteur `seo.indexable` du
+        // centre d'aide : il ne couvre que `/hc`, que Diafane n'emploie pas.
+        // Il est donc sans objet, et le refus reste total.
+        //
+        // ⚠️ A REAPPLIQUER A CHAQUE MONTEE DE VERSION, comme le correctif des
+        // images MinIO. Verification en dix secondes : `/robots.txt` du portail.
+        const body = `User-agent: *
+Disallow: /
+`
 
         return new Response(body, {
           headers: {

@@ -1,31 +1,59 @@
 /**
- * Shared email styles for Quackback emails
+ * ⭐ LA CHARTE DE DIAFANE, POUR LES MAILS (adaptation du fork, 2026-09-23).
  *
- * Ensures consistent branding across all email templates.
- * Colors are derived from the app's design system.
+ * POURQUOI CE FICHIER EST RETOUCHE ET PAS LE CSS D'HABILLAGE : le CSS colle
+ * dans `Settings > Branding` habille le portail, l'ecran de connexion et le
+ * widget, mais il N'ATTEINT PAS les mails. Ceux-ci sont rendus en React par ce
+ * paquet, et leurs couleurs vivent ICI, en dur. Le seul reglage que
+ * l'administration expose pour un mail est le LOGO (`settings.logoKey`).
+ *
+ * CE QUE CA CORRIGEAIT, mesure le 2026-09-22 : les quatorze gabarits partaient
+ * avec le dore de Quackback `#FFD43B` sur leurs boutons et un ambre `#b45309`
+ * sur chaque lien. Ce sont un JAUNE et un ORANGE, les deux seules couleurs que
+ * la charte de Diafane interdit sans exception (« il n'y a plus aucune
+ * exception au jaune, l'admin comprise »).
+ *
+ * LES VALEURS sont celles que Seb a arretees pour le portail, donc les memes
+ * des deux cotes : une seule apparence a tenir a jour.
+ *
+ * ⚠️ A REAPPLIQUER A CHAQUE MONTEE DE VERSION, comme le correctif des images
+ * MinIO et celui de `robots.txt`.
+ *
+ * CE QU'ON NE TOUCHE PAS, et pourquoi :
+ *  - LA PILE DE POLICES reste celle du systeme. Diafane ecrit en Google Sans,
+ *    mais une police distante ne se charge pas dans la plupart des logiciels de
+ *    messagerie : la pile actuelle EST deja le repli de l'application.
+ *  - LA POLICE DES TITRES (Glass Antiqua) ne peut pas suivre, pour la meme
+ *    raison. Un mail n'a pas les titres de la vitrine, il a son encre.
  */
 
-export const DEFAULT_LOGO_URL = 'https://quackback.io/logo.png'
+/**
+ * Le repli quand aucun logo n'est charge dans l'administration. Il pointait sur
+ * `quackback.io/logo.png`, donc tant que le reglage restait vide CHAQUE mail
+ * partait avec le logo d'un autre produit.
+ */
+export const DEFAULT_LOGO_URL = 'https://diafane.com/email-logo.png'
 
-// Brand colors (converted from oklch to hex for email compatibility)
+// Les jetons de Diafane (resources/css/vitrine3.css et le kit du portail).
 export const colors = {
-  // Primary gold - oklch(0.886 0.176 86) ≈ #FFD43B
-  primary: '#FFD43B',
-  primaryDark: '#F2C230',
+  // Le bouton est NOIR a texte creme, comme `.v3-btn-noir` : c'est le bouton
+  // de Diafane. `primaryDark` est l'elevation e1, celle des survols.
+  primary: '#14181C', // DiafaneBlack
+  primaryDark: '#1E242A', // DiafaneBlack e1
 
   // Text colors
-  heading: '#0f172a', // slate-900
-  text: '#334155', // slate-700
-  textMuted: '#64748b', // slate-500
-  textLight: '#94a3b8', // slate-400
+  heading: '#14181C', // DiafaneBlack
+  text: '#4a453d', // entre l'encre et le gris de la charte
+  textMuted: '#6f6a60', // --gris
+  textLight: '#a39d90', // --gris-clair
 
   // Background colors
-  background: '#f8fafc', // slate-50
+  background: '#faf6ef', // le creme de l'application
   surface: '#ffffff',
-  surfaceMuted: '#f1f5f9', // slate-100
+  surfaceMuted: '#f4eee2', // le beige
 
   // Border
-  border: '#e2e8f0', // slate-200
+  border: '#ece8e1',
 }
 
 // Common layout styles
@@ -89,8 +117,11 @@ export const typography = {
 export const button = {
   primary: {
     backgroundColor: colors.primary,
-    borderRadius: '8px',
-    color: '#09090b',
+    // La capsule de `.v3-btn`. Les vieux Outlook la rendent carree, ce qui est
+    // une degradation visible mais honnete : aucune autre valeur ne donnerait
+    // le bouton de Diafane ailleurs.
+    borderRadius: '999px',
+    color: '#faf6ef', // le creme, sur le noir
     fontSize: '16px',
     fontWeight: '600',
     padding: '14px 28px',
@@ -107,8 +138,8 @@ export const utils = {
     marginBottom: '32px',
   },
   link: {
-    color: '#b45309',
-    textDecoration: 'none',
+    color: colors.heading,
+    textDecoration: 'underline',
   },
   codeBox: {
     backgroundColor: colors.surfaceMuted,
