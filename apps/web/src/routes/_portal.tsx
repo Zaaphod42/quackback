@@ -1,5 +1,6 @@
 import { createFileRoute, redirect, Outlet } from '@tanstack/react-router'
 import { PortalHeader } from '@/components/public/portal-header'
+import { PortalBugPill } from '@/components/public/portal-bug-pill'
 import { AuthPopoverProvider } from '@/components/auth/auth-popover-context'
 import { AuthDialog } from '@/components/auth/auth-dialog'
 import { PortalAccessGate } from '@/components/portal/portal-access-gate'
@@ -278,6 +279,9 @@ function PortalLayout() {
           <main className="flex-1 w-full flex flex-col">
             <Outlet />
           </main>
+          {/* « Un bug ? Une question ? », en bas a droite de toutes les pages
+              du portail, comme sur les guides de Diafane (Seb 2026-10-07). */}
+          <PortalBugPill />
           <AuthDialog authConfig={authConfig} workspaceName={org.name} />
         </div>
       </AuthPopoverProvider>

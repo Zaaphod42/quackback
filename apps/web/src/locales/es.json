@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "Cerrar sesión",
   "portal.header.auth.settings": "Configuración",
   "portal.header.auth.admin": "Administración",
+  "portal.bugPill.label": "¿Un error? ¿Una pregunta?",
   "portal.header.theme.toggleLabel": "Cambiar tema",
   "portal.header.theme.system": "Sistema",
   "portal.header.theme.light": "Claro",

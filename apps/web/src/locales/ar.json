@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "تسجيل الخروج",
   "portal.header.auth.settings": "الإعدادات",
   "portal.header.auth.admin": "الإدارة",
+  "portal.bugPill.label": "خطأ؟ سؤال؟",
   "portal.header.theme.toggleLabel": "تبديل المظهر",
   "portal.header.theme.system": "النظام",
   "portal.header.theme.light": "فاتح",

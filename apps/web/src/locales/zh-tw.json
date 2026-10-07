@@ -105,6 +105,7 @@
   "portal.header.auth.signOut": "登出",
   "portal.header.auth.settings": "設定",
   "portal.header.auth.admin": "管理後台",
+  "portal.bugPill.label": "遇到問題？有疑問？",
   "portal.header.theme.toggleLabel": "切換主題",
   "portal.header.theme.system": "跟隨系統",
   "portal.header.theme.light": "淺色",
