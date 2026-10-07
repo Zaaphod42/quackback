@@ -86,6 +86,11 @@ exit 0`,
   createdb: `[ -n "\${ECHEC_CREATEDB:-}" ] && exit 1; exit 0`,
   dropdb: `exit 0`,
   curl: `printf '%s\\n' "$*" >> "$TRACES/telegram"; exit 0`,
+  // Le vrai \`timeout\` de Debian lance la commande et rend 124 au-delà du délai.
+  timeout: `
+[ -n "\${DELAI_DEPASSE:-}" ] && exit 124
+shift
+exec "$@"`,
 }
 
 let dossier: string
@@ -267,6 +272,48 @@ describe('sauvegarder verifier', () => {
   })
 })
 
+describe('sauvegarder avant (la copie d’avant chaque déploiement)', () => {
+  beforeEach(preparer)
+  afterEach(() => rmSync(dossier, { recursive: true, force: true }))
+
+  it('copie la base dans le délai, puis garde les dix dernières copies d’avant déploiement', () => {
+    const r = lancer(['avant'])
+    expect(r.statut).toBe(0)
+    const a = appels()
+    expect(a[0]).toMatch(/^timeout 300 bash .*sauvegarder\.sh copie-avant$/)
+    expect(a.some((x) => x.includes('restic backup --host feedback --tag avant-deploiement'))).toBe(
+      true
+    )
+    expect(a.at(-1)).toBe(
+      'restic forget --host feedback --tag avant-deploiement --keep-last 10 --prune'
+    )
+    expect(telegram()).toBe('')
+  })
+
+  it('rend la main avec succès même quand la copie échoue, pour ne jamais bloquer le portail', () => {
+    const r = lancer(['avant'], { ECHEC_PG_DUMP: '1' })
+    expect(r.statut).toBe(0)
+    expect(r.sortie).toContain('le portail démarre sans copie')
+    expect(telegram()).toContain('pg_dump')
+  })
+
+  it('rend la main avec succès même sans aucune variable', () => {
+    const r = lancer(['avant'], {
+      RESTIC_PASSWORD: undefined,
+      AWS_ACCESS_KEY_ID: undefined,
+      AWS_SECRET_ACCESS_KEY: undefined,
+    })
+    expect(r.statut).toBe(0)
+  })
+
+  it('ne fait pas attendre le portail au-delà du délai, et le dit', () => {
+    const r = lancer(['avant'], { DELAI_DEPASSE: '1', SAUVEGARDE_AVANT_MAX: '120' })
+    expect(r.statut).toBe(0)
+    expect(appels()[0]).toMatch(/^timeout 120 /)
+    expect(telegram()).toContain('120 secondes')
+  })
+})
+
 describe('l’heure de la sauvegarde', () => {
   beforeEach(preparer)
   afterEach(() => rmSync(dossier, { recursive: true, force: true }))
@@ -300,17 +347,39 @@ describe('le service dans docker-compose.prod.yml', () => {
   const compose = readFileSync(COMPOSE, 'utf8')
   const service = compose.slice(
     compose.indexOf('\n  sauvegarde:\n'),
+    compose.indexOf('\n  sauvegarde-avant:\n')
+  )
+  const avant = compose.slice(
+    compose.indexOf('\n  sauvegarde-avant:\n'),
     compose.indexOf('\nvolumes:\n')
   )
+  const variables = (bloc: string) =>
+    bloc
+      .slice(bloc.indexOf('    environment:\n'), bloc.indexOf('    depends_on:\n'))
+      .split('\n')
+      .filter((l) => /^ {6}[A-Z_]+:/.test(l) && !/SAUVEGARDE_(HEURE|AVANT_MAX)/.test(l))
   const app = compose.slice(compose.indexOf('\n  app:\n'), compose.indexOf('\n  postgres:\n'))
 
-  it('existe, et se construit depuis ce dépôt', () => {
-    expect(service).toContain('context: ./docker/sauvegarde')
-    expect(service).not.toMatch(/^\s+image:/m)
+  it('existe en deux services, construits depuis ce dépôt', () => {
+    for (const bloc of [service, avant]) {
+      expect(bloc).toContain('context: ./docker/sauvegarde')
+      expect(bloc).not.toMatch(/^\s+image:/m)
+    }
   })
 
   it('n’a aucune variable obligatoire : une variable manquante ne doit jamais arrêter le portail', () => {
     expect(service).not.toContain(':?')
+    expect(avant).not.toContain(':?')
+  })
+
+  it('donne les mêmes variables aux deux services', () => {
+    expect(variables(service).length).toBeGreaterThan(8)
+    expect(variables(avant)).toEqual(variables(service))
+  })
+
+  it('lance la copie d’avant déploiement une seule fois, sans la relancer', () => {
+    expect(avant).toContain("restart: 'no'")
+    expect(avant).toContain("command: ['avant']")
   })
 
   it('ne reçoit que ses variables, sous des noms SAUVEGARDE_* côté Coolify', () => {
@@ -320,7 +389,8 @@ describe('le service dans docker-compose.prod.yml', () => {
     expect(service).toContain('AWS_SECRET_ACCESS_KEY: ${SAUVEGARDE_CLE_SECRETE:-}')
   })
 
-  it('l’application ne dépend pas de lui', () => {
-    expect(app).not.toContain('sauvegarde')
+  it('l’application attend la copie d’avant déploiement, et ne dépend pas de la sauvegarde de la nuit', () => {
+    expect(app).toMatch(/ sauvegarde-avant:\n\s+condition: service_completed_successfully/)
+    expect(app).not.toMatch(/^ {6}sauvegarde:/m)
   })
 })

@@ -81,6 +81,12 @@ services:
         condition: service_healthy
       dragonfly:
         condition: service_healthy
+      # ⭐ DIAFANE : l'application ne demarre qu'une fois la copie d'avant
+      # deploiement terminee, pour qu'elle precede les migrations. Ce service
+      # rend TOUJOURS la main avec succes, meme quand la copie echoue : il ne
+      # peut pas laisser le portail arrete (cf le service plus bas).
+      sauvegarde-avant:
+        condition: service_completed_successfully
     healthcheck:
       # Use Bun (always in the image) so we don't depend on curl/wget. The
       # container listens on 3000 regardless of the published APP_PORT.
@@ -156,6 +162,10 @@ services:
   #
   # L'application ne depend PAS de ce service : s'il ne demarre pas, le portail
   # demarre quand meme.
+  #
+  # ⚠️ SES VARIABLES SONT RECOPIEES DANS `sauvegarde-avant`, a l'identique
+  # (docker/sauvegarde/__tests__ le verifie) : pas d'ancre YAML, que Coolify
+  # reecrit ce fichier a sa facon.
   sauvegarde:
     build:
       context: ./docker/sauvegarde
@@ -176,6 +186,38 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       SAUVEGARDE_HEURE: ${SAUVEGARDE_HEURE:-02:30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ⭐ DIAFANE : LA COPIE D'AVANT CHAQUE DEPLOIEMENT (2026-10-07), le pendant
+  # du `backup:create --tag=predeploy` de Diafane. Coolify arrete l'ancienne
+  # version avant de demarrer la nouvelle : ce service copie la base entre les
+  # deux, au repos, avant que l'application ne joue ses migrations. Il rend
+  # TOUJOURS la main avec succes, au plus tard apres SAUVEGARDE_AVANT_MAX
+  # secondes : l'application l'attend, et une copie ratee se dit sur Telegram
+  # sans jamais laisser le portail arrete.
+  sauvegarde-avant:
+    build:
+      context: ./docker/sauvegarde
+      dockerfile: Dockerfile
+    container_name: quackback-sauvegarde-avant
+    restart: 'no'
+    init: true
+    command: ['avant']
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-quackback}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-}
+      PGDATABASE: ${POSTGRES_DB:-quackback}
+      RESTIC_REPOSITORY: ${SAUVEGARDE_DEPOT:-s3:s3.fr-par.scw.cloud/diafane-feedback-sauvegardes/base}
+      RESTIC_PASSWORD: ${SAUVEGARDE_MOT_DE_PASSE:-}
+      AWS_ACCESS_KEY_ID: ${SAUVEGARDE_CLE_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${SAUVEGARDE_CLE_SECRETE:-}
+      AWS_DEFAULT_REGION: fr-par
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      SAUVEGARDE_AVANT_MAX: ${SAUVEGARDE_AVANT_MAX:-300}
     depends_on:
       postgres:
         condition: service_healthy

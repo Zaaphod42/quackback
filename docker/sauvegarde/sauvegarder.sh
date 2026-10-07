@@ -22,6 +22,11 @@
 #                       une copie `nuit`, puis le tri des anciennes
 #   verifier            restaure la derniere copie dans une base d'essai,
 #                       compte ce qu'elle contient, puis efface la base d'essai
+#   avant               la copie d'avant chaque deploiement (service
+#                       `sauvegarde-avant`) : rend TOUJOURS la main avec
+#                       succes, au plus tard apres SAUVEGARDE_AVANT_MAX
+#                       secondes (300 par defaut)
+#   copie-avant         interne : ce que `avant` fait dans sa limite de temps
 #   lister              les copies du depot
 #   prochaine           dans combien de secondes tombe la prochaine sauvegarde
 #
@@ -234,6 +239,43 @@ verifier_dans() {
   return 0
 }
 
+# La copie d'avant chaque deploiement (service `sauvegarde-avant` du compose).
+# Coolify arrete l'ancienne version du portail avant de demarrer la nouvelle :
+# ce service tourne entre les deux, donc sur une base au repos, et AVANT que la
+# nouvelle version ne joue ses migrations. C'est le pendant du
+# `backup:create --tag=predeploy` de Diafane : une montee de version ne peut
+# plus partir sans sa copie, personne n'a a y penser.
+#
+# Il rend TOUJOURS la main avec succes : l'application attend qu'il ait fini
+# (`service_completed_successfully`), et une copie ratee ne doit jamais laisser
+# le portail arrete. L'echec se dit sur Telegram, le portail demarre.
+avant() {
+  local max="${SAUVEGARDE_AVANT_MAX:-300}" statut
+  journal "copie d'avant déploiement, au plus $max secondes"
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$max" bash "$0" copie-avant
+    statut=$?
+  else
+    copie_avant
+    statut=$?
+  fi
+  if [ "$statut" -eq 124 ]; then
+    echec "avant-deploiement" "la copie a dépassé $max secondes, le portail a démarré sans elle"
+  elif [ "$statut" -ne 0 ]; then
+    journal "le portail démarre sans copie d'avant déploiement"
+  fi
+  exit 0
+}
+
+# Les copies d'avant deploiement : les dix dernieres sont gardees.
+copie_avant() {
+  sauvegarder avant-deploiement || return $?
+  if ! restic forget --host "$HOTE" --tag avant-deploiement --keep-last 10 --prune; then
+    echec "avant-deploiement" "le tri des anciennes copies (restic forget), la copie est pourtant envoyée"
+  fi
+  return 0
+}
+
 secondes_avant() {
   local heure="$1" h m maintenant cible jour attente
   case "$heure" in
@@ -286,10 +328,12 @@ case "$commande" in
   maintenant) sauvegarder "${1:-manuel}" ;;
   nuit) sauvegarder nuit && nettoyer ;;
   verifier) verifier ;;
+  avant) avant ;;
+  copie-avant) copie_avant ;;
   lister) restic snapshots --host "$HOTE" ;;
   prochaine) secondes_avant "${1:-${SAUVEGARDE_HEURE:-$HEURE_PAR_DEFAUT}}" && echo ;;
   *)
-    echo "usage : sauvegarder [boucle | maintenant [etiquette] | nuit | verifier | lister | prochaine [HH:MM]]" >&2
+    echo "usage : sauvegarder [boucle | maintenant [etiquette] | nuit | verifier | avant | lister | prochaine [HH:MM]]" >&2
     exit 64
     ;;
 esac
