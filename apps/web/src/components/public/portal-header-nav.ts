@@ -78,6 +78,12 @@ export type PortalNavItem =
       href: string
       label: string
       newTab: boolean
+      /**
+       * DIAFANE : un lien pose par le code (les guides) se traduit par cette cle,
+       * `label` servant alors de texte par defaut. Un lien de l'administration
+       * n'en a pas et garde son libelle tel quel.
+       */
+      messageId?: string
     }
 
 function builtInItem(type: PortalBuiltInNavType, id?: string, label?: string): PortalNavItem {
@@ -161,4 +167,50 @@ export function seedNavEditorItems(nav?: PortalNavConfig | null): PortalNavItemC
 /** Default label/message metadata for the editor's built-in rows. */
 export function builtInNavDefinition(type: PortalBuiltInNavType): BuiltInNavDefinition {
   return BUILT_IN_NAV_ITEMS[type]
+}
+
+/**
+ * ⭐ LA BARRE DU PORTAIL EST CELLE DES PAGES PUBLIQUES DE DIAFANE (Seb 2026-09-23).
+ *
+ * Elle porte trois pieces, et trois seulement :
+ *
+ *   1. LES GUIDES, qui vivent sur `diafane.com` et non ici (decision D2) ;
+ *   2. LES IDEES, le tableau de feedback, qui est l'accueil du portail ;
+ *   3. LES CONVERSATIONS, l'onglet Support.
+ *
+ * Roadmap et Changelog ne sont plus masques par la feuille d'habillage mais
+ * RETIRES : la feuille de route se lit dans les idees, et le journal des
+ * nouveautes reste dans l'application (decision D15). Les cacher en CSS
+ * laissait deux pages vivantes que n'importe quelle adresse tapee a la main
+ * rouvrait, et une barre dont la moitie des entrees existait pour etre cachee.
+ *
+ * Depuis la 0.14, la barre se regle dans l'administration (ordre, visibilite,
+ * liens). Ce filtre passe APRES ce reglage : les guides restent en tete et les
+ * deux onglets retires ne reviennent pas, quoi qu'on y coche. Les guides sont
+ * un lien (`kind: 'link'`), donc un `<a>` : sans cela, le routeur chercherait
+ * `/en/guides` chez lui.
+ */
+const NAV_ITEM_GUIDES: PortalNavItem = {
+  kind: 'link',
+  id: 'guides',
+  type: 'link',
+  /**
+   * Le sommaire des guides. Le segment reste `guides` dans les six langues
+   * (`App\Support\Aide::SEGMENT` cote Diafane), mais la LANGUE est obligatoire :
+   * il n'existe pas de `/guides` nu. Le portail etant en anglais, c'est `en`.
+   */
+  href: 'https://diafane.com/en/guides',
+  label: 'Guides',
+  messageId: 'portal.header.nav.guides',
+  newTab: false,
+}
+
+const ONGLETS_RETIRES: ReadonlySet<PortalBuiltInNavType> = new Set(['roadmap', 'changelog'])
+
+/** DIAFANE : les guides en tete, puis la barre de l'amont sans Roadmap ni Changelog. */
+export function barreDiafane(items: readonly PortalNavItem[]): PortalNavItem[] {
+  return [
+    NAV_ITEM_GUIDES,
+    ...items.filter((item) => item.kind === 'link' || !ONGLETS_RETIRES.has(item.type)),
+  ]
 }

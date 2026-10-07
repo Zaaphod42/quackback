@@ -70,6 +70,7 @@ const rootAnswer = {
       ...DEFAULT_FEATURE_FLAGS,
       ...getProductFlagUpdate('feedback', true),
       ...getProductFlagUpdate('changelog', true),
+      ...getProductFlagUpdate('helpCenter', true),
     },
   },
   registeredAuthProviders: [],
@@ -95,13 +96,15 @@ function buildRouter() {
     validateSearch: (search: Record<string, unknown>) => search as { sort?: string },
     component: () => <p>feedback page</p>,
   })
-  const roadmap = createRoute({
+  // DIAFANE : la barre n'a plus d'onglet Roadmap (portal-header-nav.ts), le
+  // deplacement se mesure donc vers le centre d'aide.
+  const help = createRoute({
     getParentRoute: () => rootRoute,
-    path: '/roadmap',
-    component: () => <p>roadmap page</p>,
+    path: '/hc',
+    component: () => <p>help page</p>,
   })
   return createRouter({
-    routeTree: rootRoute.addChildren([home, roadmap]),
+    routeTree: rootRoute.addChildren([home, help]),
     history: createMemoryHistory({ initialEntries: ['/?sort=top'] }),
     context: {},
   })
@@ -151,10 +154,10 @@ describe('PortalHeader renders', () => {
     const bell = counts.bell
     const themeMenu = counts.themeMenu
 
-    await act(() => router.navigate({ to: '/roadmap' }))
-    await screen.findByText('roadmap page')
+    await act(() => router.navigate({ to: '/hc' }))
+    await screen.findByText('help page')
 
-    expect(activeTabs(container)).toEqual(['/roadmap'])
+    expect(activeTabs(container)).toEqual(['/hc'])
     expect(accountMenu()).toBe(menu)
     expect(counts.bell).toBe(bell)
     expect(counts.themeMenu).toBe(themeMenu)

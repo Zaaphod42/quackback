@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from 'react'
 import { Link, useRouter, useRouterState, useRouteContext } from '@tanstack/react-router'
 import { useTheme } from 'next-themes'
-import { resolvePortalNavItems, type PortalNavItem } from './portal-header-nav'
+import { barreDiafane, resolvePortalNavItems, type PortalNavItem } from './portal-header-nav'
 import { usePreviewNav } from './preview-draft-context'
 import { isProductEnabled } from '@/lib/shared/types/settings'
 import { isStatusPagePublished } from '@/lib/shared/status-settings'
@@ -99,16 +99,19 @@ export function PortalHeader({
   // preview mode). Only that draft: a stylesheet or welcome-card edit leaves the
   // header alone.
   const previewNav = usePreviewNav()
-  const navItems = resolvePortalNavItems(
-    {
-      feedback: feedbackEnabled,
-      roadmap: feedbackEnabled,
-      changelog: changelogEnabled,
-      help: helpCenterEnabled,
-      support: supportEnabled,
-      status: statusEnabled,
-    },
-    previewNav ?? settings?.portalConfig?.nav
+  // DIAFANE : les guides en tete, Roadmap et Changelog retires (portal-header-nav.ts).
+  const navItems = barreDiafane(
+    resolvePortalNavItems(
+      {
+        feedback: feedbackEnabled,
+        roadmap: feedbackEnabled,
+        changelog: changelogEnabled,
+        help: helpCenterEnabled,
+        support: supportEnabled,
+        status: statusEnabled,
+      },
+      previewNav ?? settings?.portalConfig?.nav
+    )
   )
 
   // Hide Log in / Sign up when no portal sign-in surface is usable.
@@ -373,6 +376,7 @@ function Navigation({
   helpHeaderLinks: { label: string; url: string }[] | undefined
   supportUnreadTotal: number
 }) {
+  const intl = useIntl()
   // Admin-configured help center links render beside the built-in nav on help
   // pages only. External URLs open in a new tab; root-relative paths stay
   // in-tab. Legacy configs predate the field, hence the `?? []`.
@@ -391,7 +395,10 @@ function Navigation({
               rel="noopener noreferrer"
               className={navItemClass(false)}
             >
-              {item.label}
+              {/* DIAFANE : les guides se traduisent, un lien de l'administration non. */}
+              {item.messageId
+                ? intl.formatMessage({ id: item.messageId, defaultMessage: item.label })
+                : item.label}
             </a>
           )
         }

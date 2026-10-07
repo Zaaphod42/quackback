@@ -265,7 +265,13 @@ describe('PortalHeader branding preview drafts', () => {
     mockGetRouteContext.mockReturnValue({
       session: null,
       settings: {
-        featureFlags: { ...DEFAULT_FEATURE_FLAGS, ...getProductFlagUpdate('feedback', true) },
+        // DIAFANE : la barre n'a plus d'onglet Roadmap (portal-header-nav.ts),
+        // l'onglet renomme est donc celui du centre d'aide.
+        featureFlags: {
+          ...DEFAULT_FEATURE_FLAGS,
+          ...getProductFlagUpdate('feedback', true),
+          ...getProductFlagUpdate('helpCenter', true),
+        },
       },
       registeredAuthProviders: [],
     })
@@ -293,7 +299,7 @@ describe('PortalHeader branding preview drafts', () => {
     )
     const renders = () => mockHasAny.mock.calls.length
     const settled = renders()
-    expect(screen.getByRole('link', { name: 'Roadmap' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Help Center' })).toBeInTheDocument()
 
     act(() => drafts.setCss!(':root { --font-sans: Inter; }'))
     act(() =>
@@ -309,7 +315,7 @@ describe('PortalHeader branding preview drafts', () => {
         nav: {
           items: [
             { id: 'feedback', type: 'feedback' },
-            { id: 'roadmap', type: 'roadmap', label: 'Plans' },
+            { id: 'help', type: 'help', label: 'Plans' },
           ],
         },
       })

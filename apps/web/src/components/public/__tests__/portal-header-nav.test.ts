@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  barreDiafane,
   resolvePortalNavItems,
   seedNavEditorItems,
   type PortalNavGates,
@@ -220,5 +221,81 @@ describe('seedNavEditorItems', () => {
     const seeded = seedNavEditorItems(nav)
     seeded[0].enabled = false
     expect(nav.items?.[0].enabled).toBeUndefined()
+  })
+})
+
+// DIAFANE : la barre du hub, posee APRES le reglage de l'administration.
+describe('barreDiafane', () => {
+  const barre = (overrides: Partial<PortalNavGates> = {}, nav?: PortalNavConfig) =>
+    barreDiafane(resolvePortalNavItems(gates(overrides), nav))
+
+  it('returns guides then feedback when nothing else is enabled', () => {
+    expect(paths(barre())).toEqual(['https://diafane.com/en/guides', '/'])
+  })
+
+  it('adds Help tab when help center is enabled', () => {
+    expect(paths(barre({ help: true }))).toEqual(['https://diafane.com/en/guides', '/', '/hc'])
+  })
+
+  it('adds Support tab when portal support is enabled', () => {
+    expect(paths(barre({ support: true }))).toEqual([
+      'https://diafane.com/en/guides',
+      '/',
+      '/support',
+    ])
+  })
+
+  it('orders Help before Support when both are enabled', () => {
+    expect(paths(barre({ help: true, support: true }))).toEqual([
+      'https://diafane.com/en/guides',
+      '/',
+      '/hc',
+      '/support',
+    ])
+  })
+
+  // Elles etaient masquees par la feuille d'habillage, donc vivantes et
+  // atteignables en tapant l'adresse. Les retirer ici est ce qui les ferme,
+  // y compris quand le reglage de l'administration les remet dans la barre.
+  it('carries neither Roadmap nor Changelog, whatever the admin config says', () => {
+    const nav: PortalNavConfig = {
+      items: [
+        { id: 'changelog', type: 'changelog', enabled: true },
+        { id: 'roadmap', type: 'roadmap', enabled: true },
+        { id: 'feedback', type: 'feedback' },
+      ],
+    }
+    for (const items of [barre({ help: true, support: true }), barre({}, nav)]) {
+      expect(paths(items)).not.toContain('/roadmap')
+      expect(paths(items)).not.toContain('/changelog')
+    }
+  })
+
+  // Le routeur du portail chercherait `/en/guides` chez lui : c'est le
+  // `kind: 'link'` qui fait rendre un `<a>` plutot qu'un `<Link>`, et la cle
+  // qui le traduit. Il s'ouvre dans le meme onglet, comme le reste du hub.
+  it('marks only the guides as leaving the portal', () => {
+    const liens = barre({ help: true, support: true }).filter((i) => i.kind === 'link')
+    expect(liens).toEqual([
+      expect.objectContaining({
+        href: 'https://diafane.com/en/guides',
+        messageId: 'portal.header.nav.guides',
+        newTab: false,
+      }),
+    ])
+  })
+
+  it('keeps the links added in the admin, after the guides', () => {
+    const nav: PortalNavConfig = {
+      items: [
+        { id: 'feedback', type: 'feedback' },
+        { id: 'l1', type: 'link', label: 'Community', url: 'https://discord.gg/acme' },
+      ],
+    }
+    expect(paths(barre({}, nav))).toEqual([
+      'https://diafane.com/en/guides',
+      '/',
+      'https://discord.gg/acme',
+    ])
   })
 })
