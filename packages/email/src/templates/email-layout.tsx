@@ -34,7 +34,7 @@ interface EmailLayoutProps {
 export function EmailLayout({
   preview,
   logoUrl,
-  logoAlt = 'Quackback',
+  logoAlt = 'Diafane',
   children,
   footer,
   showPoweredBy: showPoweredByOverride,
