@@ -237,6 +237,10 @@ export const Route = createFileRoute('/_portal')({
     // Always apply custom CSS on top (cascades over theme styles)
     const customCssToApply = customCss
 
+    // DIAFANE : la barre du portail ne lit plus ces donnees (elle n'a plus de
+    // menu de compte). Elles restent chargees parce que, depuis la 0.14, le fil
+    // d'une conversation de support (`_portal/support.$conversationId.tsx`) y
+    // lit l'avatar du visiteur.
     const initialUserData = session?.user
       ? {
           name: session.user.name,
@@ -370,7 +374,6 @@ function PortalLayout() {
     customCss,
     configFontSans,
     themeMode,
-    initialUserData,
     authConfig,
     locale,
     messages,
@@ -404,7 +407,6 @@ function PortalLayout() {
                 orgName={workspaceName}
                 orgLogo={brandingData?.logoUrl ?? null}
                 userRole={userRole}
-                initialUserData={initialUserData}
                 // The toggle is inert under a forced theme, and the preview
                 // always forces one — hide it there.
                 showThemeToggle={themeMode === 'user' && !preview}

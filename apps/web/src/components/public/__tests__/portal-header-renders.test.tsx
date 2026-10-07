@@ -84,8 +84,7 @@ function buildRouter() {
     component: () => (
       <>
         <Profiler id="header" onRender={() => headerCommits++}>
-          {/* DIAFANE : seul un membre de l'equipe a encore un menu de compte. */}
-          <PortalHeader orgName="Acme" userRole="admin" />
+          <PortalHeader orgName="Acme" userRole="user" />
         </Profiler>
         <Outlet />
       </>
@@ -127,7 +126,9 @@ async function mount() {
   return { router, container: view.container }
 }
 
-const accountMenu = () => screen.getByRole('button', { name: 'Open account menu' })
+// DIAFANE : la barre n'a plus de menu de compte (portal-header.tsx) ; le menu
+// dont on suit l'identite est donc celui du theme.
+const menuDuTheme = () => screen.getByRole('button', { name: 'Toggle theme' })
 const activeTabs = (container: HTMLElement) =>
   [...container.querySelectorAll('.portal-nav__item--active')].map((a) => a.getAttribute('href'))
 
@@ -135,7 +136,7 @@ describe('PortalHeader renders', () => {
   it('renders nothing for a search-only navigation', async () => {
     const { router, container } = await mount()
     expect(activeTabs(container)).toEqual(['/'])
-    const menu = accountMenu()
+    const menu = menuDuTheme()
     const commits = headerCommits
     const bell = counts.bell
 
@@ -145,13 +146,13 @@ describe('PortalHeader renders', () => {
     expect(router.state.location.search).toEqual({ sort: 'trending' })
     expect(headerCommits).toBe(commits)
     expect(counts.bell).toBe(bell)
-    expect(accountMenu()).toBe(menu)
+    expect(menuDuTheme()).toBe(menu)
     expect(activeTabs(container)).toEqual(['/'])
   })
 
   it('keeps its menus mounted and moves the highlight between pages', async () => {
     const { router, container } = await mount()
-    const menu = accountMenu()
+    const menu = menuDuTheme()
     const bell = counts.bell
     const themeMenu = counts.themeMenu
 
@@ -159,7 +160,7 @@ describe('PortalHeader renders', () => {
     await screen.findByText('help page')
 
     expect(activeTabs(container)).toEqual(['/hc'])
-    expect(accountMenu()).toBe(menu)
+    expect(menuDuTheme()).toBe(menu)
     expect(counts.bell).toBe(bell)
     expect(counts.themeMenu).toBe(themeMenu)
   })

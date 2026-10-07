@@ -110,7 +110,6 @@ vi.mock('@/components/shared/user-stats', () => ({
 
 import { PortalHeader } from '../portal-header'
 import { PreviewDraftProvider, type PortalPreviewDraft } from '../preview-draft-context'
-import { VIEWER_SCOPED_PORTAL_QUERY_KEYS } from '@/lib/client/queries/portal'
 import { DEFAULT_FEATURE_FLAGS, getProductFlagUpdate } from '@/lib/shared/types/settings'
 
 const loggedInSession = {
@@ -149,28 +148,35 @@ function renderHeader({
   )
 }
 
-describe('PortalHeader — Admin dropdown item', () => {
+// ⭐ LA BARRE DU PORTAIL N'A PLUS DE MENU DE COMPTE, POUR PERSONNE
+// (Seb 2026-09-23). L'avatar a d'abord ete reserve a l'equipe, puis retire
+// tout court : le rail de l'administration porte deja son propre avatar, son
+// « Settings » et son « Sign out », et le bouton « Administration » reste dans
+// la barre pour y mener. Ces tests figent les deux moities de cette regle.
+describe('PortalHeader — le compte', () => {
   afterEach(() => cleanup())
 
-  it('shows an Admin item in the user dropdown for team members', async () => {
+  it('keeps the Administration button for a team member, as a link', () => {
     renderHeader({ userRole: 'admin', isLoggedIn: true })
-    // The avatar button is the only button in the header (theme toggle off,
-    // NotificationBell mocked away, standalone Admin renders as a link).
-    const trigger = screen.getByRole('button')
-    fireEvent.click(trigger)
-    expect(await screen.findByRole('menuitem', { name: /admin/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /admin/i })).toBeInTheDocument()
   })
 
-  // ⚠️ UN UTILISATEUR DU PORTAIL N'A PLUS DE MENU DE COMPTE DU TOUT (Seb
-  // 2026-09-23). L'ancienne version de ce test ouvrait son menu pour verifier
-  // qu'« Admin » n'y figurait pas ; il n'y a plus de menu a ouvrir, ce qui est
-  // une garantie plus forte, et c'est elle qu'on fige ici.
-  it('gives a portal user no account menu at all', () => {
+  // Une garantie plus forte que l'ancienne, qui ouvrait le menu pour verifier
+  // qu'« Admin » n'y figurait pas : il n'y a plus de menu a ouvrir.
+  it('gives nobody an account menu, team member included', () => {
+    for (const userRole of ['admin', 'user'] as const) {
+      cleanup()
+      renderHeader({ userRole, isLoggedIn: true })
+      expect(screen.queryByRole('menuitem')).toBeNull()
+      // Le theme est coupe et la cloche est simulee : il ne doit plus rester
+      // AUCUN bouton dans la barre pour un visiteur connecte.
+      expect(screen.queryByRole('button')).toBeNull()
+    }
+  })
+
+  it('hides the Administration button from a portal user', () => {
     renderHeader({ userRole: 'user', isLoggedIn: true })
-    // La seule commande de la barre est le bouton de retour vers Diafane, et
-    // c'est un lien.
-    expect(screen.queryByRole('button')).toBeNull()
-    expect(screen.queryByRole('menuitem')).toBeNull()
+    expect(screen.queryByRole('link', { name: /admin/i })).toBeNull()
   })
 })
 
@@ -232,41 +238,10 @@ describe('PortalHeader — le bouton Diafane', () => {
   })
 })
 
-describe('PortalHeader — sign-out cache hygiene', () => {
-  beforeEach(() => {
-    mockInvalidateQueries.mockClear()
-    mockRemoveQueries.mockClear()
-    mockSignOut.mockClear()
-  })
-  afterEach(() => cleanup())
-
-  it('removes (not merely invalidates) every viewer-scoped cache so internal tags do not outlive a team session', async () => {
-    renderHeader({ userRole: 'admin', isLoggedIn: true })
-    fireEvent.click(screen.getByRole('button'))
-    fireEvent.click(await screen.findByRole('menuitem', { name: /log out|sign out/i }))
-    await vi.waitFor(() => expect(mockSignOut).toHaveBeenCalled())
-
-    // Loaders read through ensureQueryData, which serves retained-but-stale
-    // data, and a reset would restore initialData; only removal actually
-    // drops the team-scoped payloads.
-    await vi.waitFor(() => {
-      const removedKeys = mockRemoveQueries.mock.calls.map(
-        (call) => (call as unknown as [{ queryKey: unknown[] }])[0].queryKey
-      )
-      expect(removedKeys).toEqual(expect.arrayContaining([...VIEWER_SCOPED_PORTAL_QUERY_KEYS]))
-    })
-    expect(VIEWER_SCOPED_PORTAL_QUERY_KEYS).toEqual(
-      expect.arrayContaining([
-        ['portal', 'tags'],
-        ['portal', 'data'],
-        ['portal', 'post'],
-        ['portal', 'roadmaps'],
-        ['portal', 'roadmapPosts'],
-        ['publicPosts'],
-      ])
-    )
-  })
-})
+// DIAFANE : la barre n'a plus de menu de compte, donc plus de « Sign out » a
+// tester ici (la 0.14 y verifiait le vidage des caches propres au visiteur a
+// la deconnexion). Ce vidage reste couvert la ou il vit, par
+// `lib/client/queries/portal-viewer-scope.test.ts`.
 
 describe('PortalHeader — single-IdP redirect', () => {
   beforeEach(() => {

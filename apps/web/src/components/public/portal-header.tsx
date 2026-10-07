@@ -15,7 +15,6 @@ import { useIntl, FormattedMessage } from 'react-intl'
 import { cn } from '@/lib/shared/utils'
 import { isTeamMember, Role } from '@/lib/shared/roles'
 import { Button } from '@/components/ui/button'
-import { signOut } from '@/lib/client/auth-client'
 import { startOidcSignIn } from '@/lib/client/start-oidc-sign-in'
 import { stashSsoAttempt } from '@/lib/client/sso-attempt-stash'
 import { signinErrorLanding } from '@/lib/shared/auth-prompt'
@@ -23,20 +22,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar } from '@/components/ui/avatar'
-import { UserStatsBar } from '@/components/shared/user-stats'
-import {
-  ArrowRightStartOnRectangleIcon,
-  Cog6ToothIcon,
-  ComputerDesktopIcon,
-  MoonIcon,
-  ShieldCheckIcon,
-  SunIcon,
-} from '@heroicons/react/24/solid'
+import { ComputerDesktopIcon, MoonIcon, ShieldCheckIcon, SunIcon } from '@heroicons/react/24/solid'
 import { useAuthPopoverSafe } from '@/components/auth/auth-popover-context'
 import { hasAnyPortalAuthMethod, resolveSoleOidcProvider } from '@/components/auth/oauth-buttons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -52,12 +40,6 @@ interface PortalHeaderProps {
   orgLogo?: string | null
   /** User's role in the organization (passed from server) */
   userRole?: Role | null
-  /** Initial user data for SSR (store values override these after hydration) */
-  initialUserData?: {
-    name: string | null
-    email: string | null
-    avatarUrl: string | null
-  }
   /** Whether to show the theme toggle (hidden when admin forces a specific theme) */
   showThemeToggle?: boolean
 }
@@ -66,10 +48,8 @@ export function PortalHeader({
   orgName,
   orgLogo,
   userRole,
-  initialUserData,
   showThemeToggle = true,
 }: PortalHeaderProps) {
-  const intl = useIntl()
   const router = useRouter()
   const queryClient = useQueryClient()
   // Each part is selected: the route context is a new object after every
@@ -169,12 +149,6 @@ export function PortalHeader({
     0
   )
 
-  // Use initialUserData (which includes properly fetched avatar from blob storage)
-  // falling back to session data
-  const name = initialUserData?.name ?? user?.name ?? null
-  const email = initialUserData?.email ?? user?.email ?? null
-  const avatarUrl = initialUserData?.avatarUrl ?? user?.image ?? null
-
   // Team members (admin, member) can access admin dashboard
   const canAccessAdmin = isLoggedIn && isTeamMember(userRole)
 
@@ -196,16 +170,6 @@ export function PortalHeader({
       callbackURL: pathname,
       errorCallbackURL: signinErrorLanding(pathname),
     })
-  }
-
-  const handleSignOut = async () => {
-    await signOut()
-    // Clear user-scoped caches: vote highlights, and every viewer-scoped
-    // payload (a team member's internal tags must not outlive their session).
-    queryClient.invalidateQueries({ queryKey: ['votedPosts'] })
-    removeViewerScopedPortalQueries(queryClient)
-    router.invalidate() // Refetch session
-    router.navigate({ to: '/' })
   }
 
   // Auth/admin buttons. Plain elements rather than a component declared in
@@ -250,68 +214,28 @@ export function PortalHeader({
       {isLoggedIn && <NotificationBell popoverSide="bottom" className="me-1" />}
 
       {/*
-        ⚠️ L'AVATAR NE PARAIT QUE POUR L'EQUIPE (Seb 2026-09-23 : « pour mes users
-        (pas l'admin), l'avatar devrait etre celui de diafane avec les memes
-        fonctions ou ne pas etre affiche »). Le premier n'est pas possible : le
-        portail vit sur un autre domaine et ne connait pas la session Diafane.
-        Reste le second, et il coute peu : un compte de portail n'est jamais
-        choisi, il est cree par le jeton signe que le widget envoie depuis
-        l'application, et le nom qu'il affiche vient de la meme source. Le menu
-        de compte ne servait donc qu'a se deconnecter d'un compte qu'on ne s'est
-        pas cree. `/settings` reste joignable par son adresse.
+        ⭐ LA BARRE DU PORTAIL N'A PLUS DE MENU DE COMPTE DU TOUT (Seb
+        2026-09-23 : « on pourrait le masquer dans feedback ? »).
+
+        Il avait d'abord ete reserve a l'equipe, faute de savoir ou Seb
+        retrouverait « Se deconnecter ». La reponse est mesuree : le rail de
+        l'ADMINISTRATION porte deja son propre avatar, son « Settings » et son
+        « Sign out » (`components/admin/admin-sidebar.tsx`). Le retirer d'ici ne
+        coute donc rien a personne, et le bouton « Administration », qui reste
+        dans la barre, y mene d'un clic.
+
+        Pour un utilisateur du portail, il ne manquait deja rien : son compte
+        n'est jamais choisi, il est cree par le jeton signe que le widget envoie
+        depuis l'application, et le nom qu'il affiche vient de la meme source.
+
+        Ce qui reste ici : la cloche, parce qu'une reponse a son idee doit se
+        voir, et « Log in » pour un visiteur.
       */}
-      {isLoggedIn && canAccessAdmin ? (
-        // Logged-in user - show user dropdown
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="relative h-9 w-9 rounded-full"
-              aria-label={intl.formatMessage({
-                id: 'portal.header.auth.accountMenu',
-                defaultMessage: 'Open account menu',
-              })}
-            >
-              <Avatar className="h-9 w-9" src={avatarUrl} name={name} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{name}</p>
-                <p className="text-xs text-muted-foreground">{email}</p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <div className="px-2 py-2">
-              <UserStatsBar />
-            </div>
-            <DropdownMenuSeparator />
-            {canAccessAdmin && (
-              <DropdownMenuItem asChild>
-                <Link to="/admin" search={{}}>
-                  <ShieldCheckIcon className="me-2 h-4 w-4" />
-                  <FormattedMessage id="portal.header.auth.admin" defaultMessage="Admin" />
-                </Link>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem asChild>
-              <Link to="/settings">
-                <Cog6ToothIcon className="me-2 h-4 w-4" />
-                <FormattedMessage id="portal.header.auth.settings" defaultMessage="Settings" />
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSignOut}>
-              <ArrowRightStartOnRectangleIcon className="me-2 h-4 w-4" />
-              <FormattedMessage id="portal.header.auth.signOut" defaultMessage="Sign out" />
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : !isLoggedIn && openAuthPopover && portalAuthEnabled ? (
-        // ⚠️ `!isLoggedIn` EST INDISPENSABLE depuis que la branche du dessus
-        // exige AUSSI `canAccessAdmin` : sans lui, un utilisateur connecte qui
-        // n'est pas de l'equipe tomberait ici et se verrait proposer de se
-        // connecter alors qu'il l'est deja.
+      {!isLoggedIn && openAuthPopover && portalAuthEnabled ? (
+        // ⚠️ `!isLoggedIn` EST INDISPENSABLE, et il n'est plus porte par une
+        // branche precedente : sans lui, un utilisateur DEJA connecte se
+        // verrait proposer de se connecter, puisque plus rien ne le distingue
+        // ici. C'est le defaut qu'avait attrape le retrait de l'avatar.
         // Visiteur : « Log in » discret, comme sur la vitrine, le bouton dore
         // juste avant tenant le role de l'appel a l'action.
         <Button
