@@ -188,18 +188,31 @@ export function builtInNavDefinition(type: PortalBuiltInNavType): BuiltInNavDefi
  * liens). Ce filtre passe APRES ce reglage : les guides restent en tete et les
  * deux onglets retires ne reviennent pas, quoi qu'on y coche. Les guides sont
  * un lien (`kind: 'link'`), donc un `<a>` : sans cela, le routeur chercherait
- * `/en/guides` chez lui.
+ * leur adresse chez lui.
  */
+/**
+ * LES TROIS ADRESSES DE DIAFANE QUE LE PORTAIL CONNAIT. Elles vivent ici, et
+ * seulement ici : une adresse recopiee dans un composant est une adresse qu'on
+ * oublie de changer.
+ *
+ * ⚠️ LE SOMMAIRE DES GUIDES EST SOUS `/aide`, PAS SOUS `/guides`. Le segment a
+ * ete renomme cote Diafane le 2026-09-22, mais la PRODUCTION sert encore
+ * l'ancien : `main` y est tres en retard sur `staging`. L'ancienne adresse
+ * redirige vers la nouvelle une fois la promotion faite, donc ce lien marche
+ * avant ET apres ; l'inverse ne serait vrai qu'apres. La LANGUE est
+ * obligatoire, il n'existe pas de `/aide` nu, et le portail est en anglais.
+ */
+export const DIAFANE = {
+  accueil: 'https://diafane.com/',
+  app: 'https://diafane.com/app',
+  guides: 'https://diafane.com/en/aide',
+} as const
+
 const NAV_ITEM_GUIDES: PortalNavItem = {
   kind: 'link',
   id: 'guides',
   type: 'link',
-  /**
-   * Le sommaire des guides. Le segment reste `guides` dans les six langues
-   * (`App\Support\Aide::SEGMENT` cote Diafane), mais la LANGUE est obligatoire :
-   * il n'existe pas de `/guides` nu. Le portail etant en anglais, c'est `en`.
-   */
-  href: 'https://diafane.com/en/guides',
+  href: DIAFANE.guides,
   label: 'Guides',
   messageId: 'portal.header.nav.guides',
   newTab: false,

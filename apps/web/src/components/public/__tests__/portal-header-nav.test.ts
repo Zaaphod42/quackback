@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   barreDiafane,
+  DIAFANE,
   resolvePortalNavItems,
   seedNavEditorItems,
   type PortalNavGates,
@@ -230,16 +231,16 @@ describe('barreDiafane', () => {
     barreDiafane(resolvePortalNavItems(gates(overrides), nav))
 
   it('returns guides then feedback when nothing else is enabled', () => {
-    expect(paths(barre())).toEqual(['https://diafane.com/en/guides', '/'])
+    expect(paths(barre())).toEqual(['https://diafane.com/en/aide', '/'])
   })
 
   it('adds Help tab when help center is enabled', () => {
-    expect(paths(barre({ help: true }))).toEqual(['https://diafane.com/en/guides', '/', '/hc'])
+    expect(paths(barre({ help: true }))).toEqual(['https://diafane.com/en/aide', '/', '/hc'])
   })
 
   it('adds Support tab when portal support is enabled', () => {
     expect(paths(barre({ support: true }))).toEqual([
-      'https://diafane.com/en/guides',
+      'https://diafane.com/en/aide',
       '/',
       '/support',
     ])
@@ -247,7 +248,7 @@ describe('barreDiafane', () => {
 
   it('orders Help before Support when both are enabled', () => {
     expect(paths(barre({ help: true, support: true }))).toEqual([
-      'https://diafane.com/en/guides',
+      'https://diafane.com/en/aide',
       '/',
       '/hc',
       '/support',
@@ -271,14 +272,24 @@ describe('barreDiafane', () => {
     }
   })
 
-  // Le routeur du portail chercherait `/en/guides` chez lui : c'est le
+  // ⚠️ LE SEGMENT EST `aide`, PAS `guides`, ET C'EST VOULU : la production de
+  // Diafane sert encore l'ancien nom, le nouveau n'existant que sur `staging`.
+  // L'ancienne adresse redirige vers la nouvelle une fois la promotion faite,
+  // donc ce lien vaut avant et apres ; l'inverse ne vaudrait qu'apres, et le
+  // bouton rendait un 404 (Seb 2026-09-23 : « le bouton guides dans le header
+  // donne une 404 »). A changer le jour ou la prod porte `guides`, pas avant.
+  it('points the guides at the segment production really serves', () => {
+    expect(DIAFANE.guides).toBe('https://diafane.com/en/aide')
+  })
+
+  // Le routeur du portail chercherait cette adresse chez lui : c'est le
   // `kind: 'link'` qui fait rendre un `<a>` plutot qu'un `<Link>`, et la cle
   // qui le traduit. Il s'ouvre dans le meme onglet, comme le reste du hub.
   it('marks only the guides as leaving the portal', () => {
     const liens = barre({ help: true, support: true }).filter((i) => i.kind === 'link')
     expect(liens).toEqual([
       expect.objectContaining({
-        href: 'https://diafane.com/en/guides',
+        href: 'https://diafane.com/en/aide',
         messageId: 'portal.header.nav.guides',
         newTab: false,
       }),
@@ -293,7 +304,7 @@ describe('barreDiafane', () => {
       ],
     }
     expect(paths(barre({}, nav))).toEqual([
-      'https://diafane.com/en/guides',
+      'https://diafane.com/en/aide',
       '/',
       'https://discord.gg/acme',
     ])

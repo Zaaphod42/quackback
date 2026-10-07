@@ -84,7 +84,8 @@ function buildRouter() {
     component: () => (
       <>
         <Profiler id="header" onRender={() => headerCommits++}>
-          <PortalHeader orgName="Acme" userRole="user" />
+          {/* DIAFANE : seul un membre de l'equipe a encore un menu de compte. */}
+          <PortalHeader orgName="Acme" userRole="admin" />
         </Profiler>
         <Outlet />
       </>
