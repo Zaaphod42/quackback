@@ -77,10 +77,13 @@ describe('visibleTabs', () => {
     ])
     expect(visibleTabs({ feedback: true, changelog: true, help: true, chat: true })).toEqual([
       'home',
+      'help',
       'feedback',
       'changelog',
-      'help',
     ])
+  })
+  it('puts the support tab before Feedback (Diafane, 2026-11-09)', () => {
+    expect(visibleTabs({ feedback: true, chat: true, home: false })).toEqual(['help', 'feedback'])
   })
   it('shows a single support tab when only chat is on (no separate chat tab)', () => {
     expect(visibleTabs({ chat: true })).toEqual(['help'])

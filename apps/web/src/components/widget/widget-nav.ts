@@ -72,13 +72,21 @@ export function homeEnabled(tabs: EnabledTabs): boolean {
   return (tabs.home ?? true) && contentSurfaceCount(tabs) > 1
 }
 
-/** Ordered tabs the bottom bar should render (Home first, only when enabled). */
+/**
+ * Ordered tabs the bottom bar should render (Home first, only when enabled).
+ *
+ * DIAFANE (2026-11-09): the support surface ("Aide") comes first, on the left,
+ * and Feedback after it: support is what people open the widget for, feedback
+ * is used far less. The tab the widget LANDS on is unchanged (see
+ * resolveInitialTab): Diafane asks for its tab explicitly on every open, and an
+ * older Diafane that opens without a view must still land on Feedback.
+ */
 export function visibleTabs(tabs: EnabledTabs): WidgetTab[] {
   const out: WidgetTab[] = []
   if (homeEnabled(tabs)) out.push('home')
+  if (supportEnabled(tabs)) out.push('help')
   if (tabs.feedback) out.push('feedback')
   if (tabs.changelog) out.push('changelog')
-  if (supportEnabled(tabs)) out.push('help')
   return out
 }
 
