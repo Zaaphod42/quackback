@@ -238,7 +238,12 @@ function WidgetPage() {
       if (!msg || typeof msg !== 'object' || msg.type !== 'quackback:open' || !msg.data) return
 
       const opts = msg.data as { view?: string }
-      if (opts.view === 'changelog' && tabs.changelog) {
+      // DIAFANE (2026-11-09): the feedback board can be asked for directly, so a
+      // "Feedback" button lands on it even after the panel was left on support.
+      if (opts.view === 'feedback' && tabs.feedback) {
+        setActiveTab('feedback')
+        setView('feedback')
+      } else if (opts.view === 'changelog' && tabs.changelog) {
         setActiveTab('changelog')
         setView('changelog')
       } else if (opts.view === 'help' && (tabs.help || tabs.chat)) {
