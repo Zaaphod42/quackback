@@ -26,7 +26,8 @@ vi.mock('@/lib/server/db', () => ({
   sql: vi.fn((_s: TemplateStringsArray, ...values: unknown[]) => ({ op: 'sql', values })),
 }))
 
-const { fabriquerLienAdmin, DUREE_LIEN_ADMIN_SECONDES } = await import('../lien-admin-diafane')
+const { fabriquerLienAdmin, destinationAdmin, DUREE_LIEN_ADMIN_SECONDES } =
+  await import('../lien-admin-diafane')
 
 const PORTAIL = 'https://feedback.example.com'
 
@@ -79,5 +80,62 @@ describe('fabriquerLienAdmin', () => {
     const r = await fabriquerLienAdmin({ email: 'inconnu@example.com', portalUrl: PORTAIL })
     expect(r).toEqual({ ok: false, statut: 403, erreur: 'not_admin' })
     expect(hoisted.mintMagicLinkUrl).not.toHaveBeenCalled()
+  })
+})
+
+describe('destinationAdmin (PLAN #731 de Diafane)', () => {
+  it('accepte l’administration, ses sous-pages avec requête, et la page d’une idée', () => {
+    expect(destinationAdmin('/admin')).toBe('/admin')
+    expect(destinationAdmin('/admin/inbox?c=conversation_01abc')).toBe(
+      '/admin/inbox?c=conversation_01abc'
+    )
+    expect(destinationAdmin('/b/idees/posts/post_01abc')).toBe('/b/idees/posts/post_01abc')
+  })
+
+  it('retombe sur /admin pour tout ce qui n’est pas un chemin interne sûr', () => {
+    for (const vers of [
+      undefined,
+      null,
+      42,
+      '',
+      'https://evil.example/admin',
+      '//evil.example/admin',
+      '/\\evil.example',
+      '/admin/../etc',
+      '/admin/%2e%2e/x',
+      '/autre',
+      '/admin evil',
+      '/admin\n/x',
+      'admin/inbox',
+      '/admin#x',
+      `/admin/${'a'.repeat(400)}`,
+    ]) {
+      expect(destinationAdmin(vers)).toBe('/admin')
+    }
+  })
+
+  it('pose la destination dans le lien et dans le retour de connexion', async () => {
+    await fabriquerLienAdmin({
+      email: 'hello@example.com',
+      portalUrl: PORTAIL,
+      vers: '/admin/inbox?c=conversation_01abc',
+    })
+    expect(hoisted.mintMagicLinkUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        callbackPath: '/admin/inbox?c=conversation_01abc',
+        errorCallbackPath: `/auth/login?callbackUrl=${encodeURIComponent('/admin/inbox?c=conversation_01abc')}`,
+      })
+    )
+  })
+
+  it('ignore une destination externe : le lien mène à /admin', async () => {
+    await fabriquerLienAdmin({
+      email: 'hello@example.com',
+      portalUrl: PORTAIL,
+      vers: 'https://evil.example',
+    })
+    expect(hoisted.mintMagicLinkUrl).toHaveBeenCalledWith(
+      expect.objectContaining({ callbackPath: '/admin' })
+    )
   })
 })
