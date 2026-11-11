@@ -24,7 +24,7 @@ import { DIAFANE } from '@/components/public/portal-header-nav'
  */
 
 interface ErrorPageProps {
-  error: Error
+  error: unknown
   reset?: () => void
   fullPage?: boolean
 }
@@ -165,8 +165,25 @@ export function FriendlyShell({ children, fullPage = true }: FriendlyShellProps)
  * outcomes, not crashes, so they get a calm permission notice rather than the
  * scary generic error treatment.
  */
-export function isAuthorizationError(error: Error): boolean {
-  return /access denied/i.test(error.message)
+/**
+ * Les routes livrent l'erreur en `unknown` (et parfois une charge sérialisée
+ * `{ message }` plutôt qu'une Error) : on lit le texte sans exiger `instanceof Error`.
+ */
+export function errorMessage(error: unknown): string {
+  if (typeof error === 'string') return error
+  if (
+    error !== null &&
+    typeof error === 'object' &&
+    'message' in error &&
+    typeof error.message === 'string'
+  ) {
+    return error.message
+  }
+  return ''
+}
+
+export function isAuthorizationError(error: unknown): boolean {
+  return /access denied/i.test(errorMessage(error))
 }
 
 export function PermissionDeniedPage({ fullPage = true }: { fullPage?: boolean }) {
@@ -215,12 +232,12 @@ export function DefaultErrorPage({ error, reset, fullPage = true }: ErrorPagePro
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">{t(T.error.lead)}</p>
 
-        {error.message && (
+        {errorMessage(error) && (
           <details className="mt-4 rounded-md border bg-muted/40 px-4 py-3 text-left">
             <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
               {t(T.technicalDetails)}
             </summary>
-            <p className="mt-2 break-words text-sm text-muted-foreground">{error.message}</p>
+            <p className="mt-2 break-words text-sm text-muted-foreground">{errorMessage(error)}</p>
           </details>
         )}
 
