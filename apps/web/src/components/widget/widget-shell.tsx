@@ -153,7 +153,7 @@ export function WidgetShell({
             {activeTab === 'feedback' ? (
               <FormattedMessage
                 id="widget.shell.heading.feedback"
-                defaultMessage="Share your ideas"
+                defaultMessage="Suggest an improvement"
               />
             ) : activeTab === 'help' ? (
               <FormattedMessage id="widget.shell.heading.help" defaultMessage="Help & Support" />

@@ -824,6 +824,15 @@ export function WidgetHomeAnimated({
             </AnimatePresence>
           </motion.div>
 
+          {/* Diafane: questions belong in the Help tab, this panel is for improvements. */}
+          <p className="px-1 pt-2 text-xs text-muted-foreground">
+            <FormattedMessage
+              id="widget.home.input.helpHint"
+              defaultMessage="A question or a problem? Use the <b>Help</b> tab."
+              values={{ b: (chunks) => <strong className="font-semibold">{chunks}</strong> }}
+            />
+          </p>
+
           {/* Popular ideas */}
           <div className="mt-2">
             <div className="flex items-center justify-between px-1 h-7">
