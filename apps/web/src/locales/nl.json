@@ -1,5 +1,5 @@
 {
-  "widget.shell.heading.feedback": "Deel uw ideeën",
+  "widget.shell.heading.feedback": "Een verbetering voorstellen",
   "widget.shell.heading.help": "Hulp en support",
   "widget.shell.heading.changelog": "Wat is er nieuw",
   "widget.shell.tab.feedback": "Feedback",
@@ -20,6 +20,7 @@
   "widget.shell.aria.userMenu": "Gebruikersmenu",
   "widget.shell.poweredBy": "Mogelijk gemaakt door {brand}",
   "widget.home.input.placeholder": "Wat is uw idee?",
+  "widget.home.input.helpHint": "Een vraag of een probleem? Gebruik het tabblad <b>Hulp</b>.",
   "widget.home.input.details": "Voeg meer details toe...",
   "widget.home.posting.postingTo": "Plaatsen in",
   "widget.home.posting.postingAs": "Plaatsen als {name}",

@@ -1,5 +1,5 @@
 {
-  "widget.shell.heading.feedback": "Teilen Sie Ihre Ideen",
+  "widget.shell.heading.feedback": "Eine Verbesserung vorschlagen",
   "widget.shell.heading.help": "Hilfe & Support",
   "widget.shell.heading.changelog": "Neuigkeiten",
   "widget.shell.tab.feedback": "Feedback",
@@ -20,6 +20,7 @@
   "widget.shell.aria.userMenu": "Benutzermenü",
   "widget.shell.poweredBy": "Bereitgestellt von {brand}",
   "widget.home.input.placeholder": "Was ist Ihre Idee?",
+  "widget.home.input.helpHint": "Eine Frage, ein Problem? Nutzen Sie den Tab <b>Hilfe</b>.",
   "widget.home.input.details": "Weitere Details hinzufügen... / eingeben für Befehle",
   "widget.home.posting.postingTo": "Posten in",
   "widget.home.posting.postingAs": "Sie posten als {name}",
