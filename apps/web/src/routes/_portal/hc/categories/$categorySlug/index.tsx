@@ -14,7 +14,7 @@ import {
 } from '@/components/help-center/help-center-utils'
 import { JsonLd } from '@/components/json-ld'
 import { buildCollectionPageJsonLd, buildBreadcrumbJsonLd } from '@/lib/shared/json-ld'
-import { cn } from '@/lib/shared/utils'
+import { cn, getInitials } from '@/lib/shared/utils'
 import { CategoryIcon } from '@/components/help-center/category-icon'
 
 const MAX_ARTICLES_SHOWN = 8
@@ -39,12 +39,7 @@ interface Author {
 }
 
 function AuthorAvatar({ author, index }: { author: Author; index: number }) {
-  const initials = author.name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  const initials = getInitials(author.name)
 
   const bg = AUTHOR_COLORS[index % AUTHOR_COLORS.length]
 

@@ -279,10 +279,18 @@ export const Route = createFileRoute('/api/widget/identify')({
         const country = captureCountryFromHeaders(request.headers)
 
         if (userRecord) {
-          const updates: Record<string, string> = {}
+          const updates: Record<string, string | null> = {}
           if (identified.name && identified.name !== userRecord.name) updates.name = identified.name
           if (identified.avatarURL && identified.avatarURL !== userRecord.image)
             updates.image = identified.avatarURL
+          // DIAFANE: a verified token that carries an EMPTY avatar says « this
+          // account no longer has a picture » (Diafane sends its workshop logo,
+          // and an empty string once the logo is removed). Without this the old
+          // logo would stay on the portal for good. Only the verified path may
+          // clear it, and a picture uploaded on the portal itself (`imageKey`)
+          // is never touched: it keeps priority over `image`.
+          if (claimsAreVerified && identified.avatarURL === '' && userRecord.image)
+            updates.image = null
           if (hasAttrs) {
             updates.metadata = mergeMetadata(userRecord.metadata ?? null, validAttrs, [])
           }
@@ -321,7 +329,8 @@ export const Route = createFileRoute('/api/widget/identify')({
               // holds across mixed-case identify calls.
               email: normalizedEmail,
               emailVerified: false,
-              image: identified.avatarURL ?? null,
+              // An empty avatar (Diafane: no workshop logo) is no picture at all.
+              image: identified.avatarURL || null,
               metadata: hasAttrs ? JSON.stringify(validAttrs) : null,
               country: country ?? null,
               // Only the verified path supplies a trusted subject; null otherwise.

@@ -45,6 +45,21 @@ describe('getInitials', () => {
   it('returns ? for empty string', () => {
     expect(getInitials('')).toBe('?')
   })
+
+  it('skips the « @ » of a Diafane handle', () => {
+    expect(getInitials('@david')).toBe('D')
+    expect(getInitials('@camille-martin')).toBe('C')
+  })
+
+  it('returns ? for a lone « @ » or a blank name', () => {
+    expect(getInitials('@')).toBe('?')
+    expect(getInitials('   ')).toBe('?')
+  })
+
+  it('never cuts an accented letter or an emoji in half', () => {
+    expect(getInitials('@élodie')).toBe('É')
+    expect(getInitials('🌞 Soleil')).toBe('🌞S')
+  })
 })
 
 describe('normalizeStrength', () => {

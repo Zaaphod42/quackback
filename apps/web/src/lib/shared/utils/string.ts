@@ -12,16 +12,25 @@ import { transliterate } from 'transliteration'
  * @example
  * getInitials('John Doe') // 'JD'
  * getInitials('Alice') // 'A'
+ * getInitials('@camille-martin') // 'C'
  * getInitials(null) // '?'
+ *
+ * DIAFANE: a Diafane account reaches the portal under its handle, written
+ * with a leading « @ » (`@camille-martin`). The « @ » is not part of the name,
+ * so it is skipped, as Diafane does for its own avatars: the initial is the
+ * first letter of the handle, never « @ ». Letters are taken whole (an
+ * accented letter or an emoji is never cut in half).
  */
 export function getInitials(name: string | null | undefined): string {
   if (!name) return '?'
-  return name
-    .split(' ')
-    .map((n) => n[0])
+  const initials = name
+    .split(/\s+/)
+    .map((word) => Array.from(word.replace(/^@+/, ''))[0])
+    .filter((letter): letter is string => Boolean(letter))
+    .slice(0, 2)
     .join('')
     .toUpperCase()
-    .slice(0, 2)
+  return initials || '?'
 }
 
 /**
