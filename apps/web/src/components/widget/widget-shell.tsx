@@ -5,7 +5,7 @@ import {
   HouseIcon,
   LightbulbIcon,
   NewspaperIcon,
-  CircleHelpIcon,
+  MessageCircleQuestionMarkIcon,
   ExternalLinkIcon,
 } from 'lucide-react'
 import { FormattedMessage, useIntl } from 'react-intl'
@@ -15,6 +15,7 @@ import { UserStatsBar } from '@/components/shared/user-stats'
 import { getWidgetAuthHeaders, generateOneTimeToken } from '@/lib/client/widget-auth'
 import { sendToHost } from '@/lib/client/widget-bridge'
 import { useWidgetAuth } from './widget-auth-provider'
+import { useWidgetMobile } from './use-widget-mobile'
 
 import { type WidgetTab, type EnabledTabs, visibleTabs } from './widget-nav'
 export type { WidgetTab }
@@ -30,7 +31,7 @@ const TAB_CONFIG: {
     tab: 'feedback',
     icon: LightbulbIcon,
     labelId: 'widget.shell.tab.feedback',
-    defaultLabel: 'Feedback',
+    defaultLabel: 'Your ideas',
   },
   {
     tab: 'changelog',
@@ -40,9 +41,9 @@ const TAB_CONFIG: {
   },
   {
     tab: 'help',
-    icon: CircleHelpIcon,
+    icon: MessageCircleQuestionMarkIcon,
     labelId: 'widget.shell.tab.help',
-    defaultLabel: 'Help',
+    defaultLabel: 'Support',
   },
 ]
 
@@ -86,6 +87,9 @@ export function WidgetShell({
   const tabsToShow = visibleTabs(enabledTabs)
   const showTabBar = tabsToShow.length > 1
   const { user, isIdentified, hmacRequired, closeWidget } = useWidgetAuth()
+  // Plein ecran sur telephone : l'en-tete y fait 60 px et porte l'avatar. Pose sur une page de bureau, 56 px et
+  // aucun avatar (la personne est deja connectee dans la page dessous).
+  const mobile = useWidgetMobile()
 
   // Global Escape key handler — close widget from anywhere
   useEffect(() => {
@@ -125,51 +129,58 @@ export function WidgetShell({
 
   return (
     <div className="flex flex-col h-full bg-card text-foreground overflow-x-hidden">
-      <div className="relative flex items-center justify-between gap-2 px-4 py-3 shrink-0 border-b border-border">
-        {/* Left: back button on detail views. */}
-        <div className="flex items-center gap-1">
-          {onBack && (
+      {/* L'EN-TETE : le titre de l'onglet a gauche (jamais de logo : le panneau s'ouvre par-dessus un site qui a le sien),
+          l'avatar sur telephone seulement, puis la croix. Dans une conversation ou un detail, la fleche de retour
+          prend la place du titre : le contenu porte son propre titre. */}
+      <div
+        className={cn(
+          'relative flex shrink-0 items-center justify-between gap-2 border-b border-border bg-card ps-5 pe-4',
+          mobile ? 'h-[60px]' : 'h-14'
+        )}
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          {onBack ? (
             <button
               type="button"
               onClick={onBack}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card hover:bg-muted transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-muted hover:bg-muted/70 transition-colors"
               aria-label={intl.formatMessage({
                 id: 'widget.shell.aria.goBack',
                 defaultMessage: 'Go back',
               })}
             >
-              <ArrowLeftIcon className="w-4 h-4 text-foreground" />
+              <ArrowLeftIcon className="w-5 h-5 text-foreground" />
             </button>
+          ) : (
+            activeTab !== 'home' && (
+              <h2
+                className="widget-shell-titre truncate pb-[3px] text-[28px] font-normal leading-none text-foreground"
+                style={{ fontFamily: "'Glass Antiqua', Georgia, serif" }}
+              >
+                {activeTab === 'feedback' ? (
+                  <FormattedMessage
+                    id="widget.shell.heading.feedback"
+                    defaultMessage="Your ideas"
+                  />
+                ) : activeTab === 'help' ? (
+                  <FormattedMessage id="widget.shell.heading.help" defaultMessage="Support" />
+                ) : (
+                  <FormattedMessage
+                    id="widget.shell.heading.changelog"
+                    defaultMessage="What's new"
+                  />
+                )}
+              </h2>
+            )
           )}
         </div>
 
-        {/* Center: the title is absolutely centered on the header midpoint so it
-            keeps its natural width (never squeezed by the right-zone controls),
-            and only truncates via max-w if a long localized title would actually
-            reach them. Detail views (with a back button) render their own heading
-            in the body, so the title is suppressed there. */}
-        {!onBack && activeTab !== 'home' && (
-          <h2 className="pointer-events-none absolute left-1/2 max-w-[55%] -translate-x-1/2 truncate text-center text-base font-semibold text-foreground">
-            {activeTab === 'feedback' ? (
-              <FormattedMessage
-                id="widget.shell.heading.feedback"
-                defaultMessage="Suggest an improvement"
-              />
-            ) : activeTab === 'help' ? (
-              <FormattedMessage id="widget.shell.heading.help" defaultMessage="Help & Support" />
-            ) : (
-              <FormattedMessage id="widget.shell.heading.changelog" defaultMessage="What's new" />
-            )}
-          </h2>
-        )}
-
-        {/* Right: portal CTA, user menu, and the always-present close. */}
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-2">
           {showPortalCta && (
             <button
               type="button"
               onClick={handleGoToPortal}
-              className="flex items-center gap-1 px-2 h-8 rounded-md text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+              className="flex items-center gap-1 px-2 h-10 rounded-md text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
               aria-label={intl.formatMessage({
                 id: 'widget.shell.aria.goToPortal',
                 defaultMessage: 'Go to portal',
@@ -179,17 +190,17 @@ export function WidgetShell({
               <ExternalLinkIcon className="w-3.5 h-3.5" />
             </button>
           )}
-          {user && <UserAvatarPopover user={user} />}
+          {user && mobile && <UserAvatarPopover user={user} />}
           <button
             type="button"
             onClick={closeWidget}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card hover:bg-muted transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-muted hover:bg-muted/70 transition-colors"
             aria-label={intl.formatMessage({
               id: 'widget.shell.aria.close',
               defaultMessage: 'Close feedback widget',
             })}
           >
-            <XIcon className="w-4 h-4 text-foreground" />
+            <XIcon className="w-5 h-5 text-foreground" />
           </button>
         </div>
       </div>
@@ -211,25 +222,32 @@ export function WidgetShell({
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {showTabBar && (
-          <div className="flex">
+          // NOS ONGLETS, EN MIROIR VERTICAL (Seb 2026-11-24) : les filets et la hauteur de `BarreOnglets` de
+          // l'application, mais le trait epais de l'onglet choisi est EN HAUT, vers l'interieur, la ou l'application
+          // le met en bas.
+          <div className="flex" role="tablist">
             {tabsToShow.map((tab) => {
               const cfg = TAB_CONFIG.find((c) => c.tab === tab)
               if (!cfg) return null
               const Icon = cfg.icon
+              const selected = activeTab === tab
               return (
                 <button
                   key={tab}
                   type="button"
+                  role="tab"
+                  aria-selected={selected}
                   onClick={() => onTabChange(tab)}
                   className={cn(
-                    'flex-1 flex flex-col items-center gap-0.5 py-2 transition-colors',
-                    activeTab === tab
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
+                    'relative flex h-[54px] flex-1 items-center justify-center gap-2 text-sm transition-colors',
+                    'border-s border-border first:border-s-0',
+                    selected
+                      ? 'font-semibold text-foreground before:absolute before:inset-x-0 before:top-0 before:h-[3px] before:bg-foreground'
+                      : 'font-medium text-foreground/60 hover:text-foreground'
                   )}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-xs font-medium">
+                  <Icon className="h-[18px] w-[18px] shrink-0" />
+                  <span className="truncate">
                     <FormattedMessage id={cfg.labelId} defaultMessage={cfg.defaultLabel} />
                   </span>
                 </button>
@@ -290,13 +308,13 @@ function UserAvatarPopover({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex h-8 w-8 items-center justify-center rounded-full hover:ring-2 hover:ring-primary/20 transition-all"
+        className="flex h-10 w-10 items-center justify-center rounded-full hover:ring-2 hover:ring-primary/20 transition-all"
         aria-label={intl.formatMessage({
           id: 'widget.shell.aria.userMenu',
           defaultMessage: 'User menu',
         })}
       >
-        <Avatar src={user.avatarUrl} name={user.name} className="size-8 text-[10px]" />
+        <Avatar src={user.avatarUrl} name={user.name} className="size-10 text-xs" />
       </button>
 
       {open && (
