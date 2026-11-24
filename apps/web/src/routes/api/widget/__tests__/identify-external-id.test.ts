@@ -194,3 +194,85 @@ describe('POST /api/widget/identify — external_id is untrusted on the unverifi
     expect(created?.externalId ?? null).toBeNull()
   })
 })
+
+describe('POST /api/widget/identify — the avatar sent by Diafane (verified path)', () => {
+  const returning = {
+    id: 'user_erin',
+    email: 'erin@acme.com',
+    externalId: 'sub_erin',
+    name: '@erin',
+    image: 'https://diafane.test/storage/logo-old.png',
+    metadata: null,
+  }
+
+  it('replaces the picture with the new workshop logo', async () => {
+    mockVerifyJWT.mockReturnValue({
+      sub: 'sub_erin',
+      email: 'erin@acme.com',
+      name: '@erin',
+      avatarURL: 'https://diafane.test/storage/logo-new.png',
+    })
+    mockUserFindFirst.mockResolvedValueOnce({ ...returning })
+    mockPrincipalFindFirst.mockResolvedValue({ id: 'principal_erin', role: 'user' })
+
+    const res = await postIdentify({ ssoToken: 'jwt' })
+
+    expect(res.status).toBe(200)
+    expect(updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({ image: 'https://diafane.test/storage/logo-new.png' })
+    )
+  })
+
+  it('clears the picture when a verified token carries an empty avatar', async () => {
+    mockVerifyJWT.mockReturnValue({
+      sub: 'sub_erin',
+      email: 'erin@acme.com',
+      name: '@erin',
+      avatarURL: '',
+    })
+    mockUserFindFirst.mockResolvedValueOnce({ ...returning })
+    mockPrincipalFindFirst.mockResolvedValue({ id: 'principal_erin', role: 'user' })
+
+    const res = await postIdentify({ ssoToken: 'jwt' })
+
+    expect(res.status).toBe(200)
+    expect(updateSet).toHaveBeenCalledWith(expect.objectContaining({ image: null }))
+  })
+
+  it('leaves the picture alone when the token says nothing about it', async () => {
+    mockVerifyJWT.mockReturnValue({ sub: 'sub_erin', email: 'erin@acme.com', name: '@erin' })
+    mockUserFindFirst.mockResolvedValueOnce({ ...returning })
+    mockPrincipalFindFirst.mockResolvedValue({ id: 'principal_erin', role: 'user' })
+
+    const res = await postIdentify({ ssoToken: 'jwt' })
+
+    expect(res.status).toBe(200)
+    for (const [set] of updateSet.mock.calls) expect(set).not.toHaveProperty('image')
+  })
+
+  it('never clears a picture from the unverified path', async () => {
+    mockUserFindFirst.mockResolvedValueOnce({ ...returning, externalId: null })
+    mockPrincipalFindFirst.mockResolvedValue({ id: 'principal_erin', role: 'user' })
+
+    const res = await postIdentify({ id: 'client_sub', email: 'erin@acme.com', avatarURL: '' })
+
+    expect(res.status).toBe(200)
+    for (const [set] of updateSet.mock.calls) expect(set).not.toHaveProperty('image')
+  })
+
+  it('creates a new account without a picture when the avatar is empty', async () => {
+    mockVerifyJWT.mockReturnValue({
+      sub: 'sub_finn',
+      email: 'finn@acme.com',
+      name: '@finn',
+      avatarURL: '',
+    })
+    mockUserFindFirst.mockResolvedValue(null)
+    mockPrincipalFindFirst.mockResolvedValue(null)
+
+    const res = await postIdentify({ ssoToken: 'jwt' })
+
+    expect(res.status).toBe(200)
+    expect(userInsertValues()?.image).toBeNull()
+  })
+})
