@@ -14,7 +14,7 @@ export function ensureStyles(side: 'left' | 'right'): void {
     '.quackback-panel.quackback-closing{opacity:0;transform:scale(0);pointer-events:none;',
     'transition:opacity 200ms cubic-bezier(0.4,0,1,1),transform 200ms cubic-bezier(0.4,0,1,1)}',
     '@media(max-width:639px){',
-    '.quackback-panel{top:0;left:0;right:0;bottom:0;width:100%;height:100vh;',
+    '.quackback-panel{top:0;left:0;right:0;bottom:auto;width:100%;height:100vh;height:100dvh;',
     'border-radius:0;border:0;box-shadow:none;',
     'opacity:1;visibility:hidden;transform:translateY(100%);transform-origin:center;',
     'transition:transform 300ms cubic-bezier(0.4,0,0.2,1),visibility 0s linear 300ms}',
