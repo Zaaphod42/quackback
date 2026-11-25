@@ -25,7 +25,7 @@ import { WidgetHelpCategory } from '@/components/widget/widget-help-category'
 import { WidgetHelpDetail } from '@/components/widget/widget-help-detail'
 import { WidgetLiveChat } from '@/components/widget/widget-live-chat'
 import type { ConversationId } from '@quackback/ids'
-import { WidgetMessagesSection } from '@/components/widget/widget-messages-section'
+import { WidgetAssistance } from '@/components/widget/widget-assistance'
 import { useWidgetAuth } from '@/components/widget/widget-auth-provider'
 import { portalQueries } from '@/lib/client/queries/portal'
 import { fetchBoardCapabilitiesFn } from '@/lib/server/functions/portal'
@@ -402,9 +402,12 @@ function WidgetPage() {
       )}
 
       {view === 'messages' && (
-        <div className="flex h-full flex-col overflow-y-auto px-3 pb-3">
-          <WidgetMessagesSection onOpenChat={openChat} />
-        </div>
+        <WidgetAssistance
+          onOpenChat={openChat}
+          helpEnabled={tabs.help}
+          onArticleSelect={handleHelpArticleSelect}
+          linkPreviews={linkPreviews}
+        />
       )}
 
       {view === 'changelog-detail' && selectedChangelogId && (

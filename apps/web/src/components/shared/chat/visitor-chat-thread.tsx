@@ -8,6 +8,7 @@ import { PaperAirplaneIcon, ChevronDownIcon } from '@heroicons/react/24/solid'
 import { ChatBubbleLeftRightIcon, PaperClipIcon, BookOpenIcon } from '@heroicons/react/24/outline'
 import type { ConversationId } from '@quackback/ids'
 import { Avatar } from '@/components/ui/avatar'
+import { cn } from '@/lib/shared/utils'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TypingDots } from '@/components/shared/typing-dots'
 import { ChatAttachmentList } from '@/components/shared/chat-attachments'
@@ -97,6 +98,12 @@ export interface VisitorChatThreadProps {
   embedOpenMode?: EmbedOpenMode
   /** Notified when the first send creates the conversation. */
   onConversationStarted?: (id: ConversationId) => void
+  /**
+   * 'portal' (default) is the thread of the portal Support tab, unchanged. 'widget' is the Diafane panel
+   * (2026-11-24): a thread with no message yet gives the whole zone to the field, with a full-width « Send »
+   * capsule under it; an open thread keeps a rounded field whose round send button sits in its corner.
+   */
+  layout?: 'portal' | 'widget'
 }
 
 /**
@@ -121,6 +128,7 @@ export function VisitorChatThread({
   helpSearch,
   embedOpenMode = 'newTab',
   onConversationStarted,
+  layout = 'portal',
 }: VisitorChatThreadProps) {
   const intl = useIntl()
   const firstName = firstNameOf(currentUser?.name)
@@ -460,7 +468,9 @@ export function VisitorChatThread({
   // messages stream in; getItemKey (message id) lets the virtualizer hold the
   // viewport when older history is prepended.
   const hasGreeting = !hasMoreOlder && !!welcomeMessage
-  const showEmpty = !loading && messages.length === 0 && !welcomeMessage
+  // Widget : tant que rien n'est parti, il n'y a pas de fil a montrer, seulement le champ, qui prend la place.
+  const fillComposer = layout === 'widget' && !loading && messages.length === 0
+  const showEmpty = !loading && messages.length === 0 && !welcomeMessage && !fillComposer
   const rows = useMemo(
     () =>
       buildChatRows({
@@ -777,6 +787,12 @@ export function VisitorChatThread({
     }
   }
 
+  const sendDisabled =
+    (!messageText.trim() && !messageHasContentNode && pendingAttachments.length === 0) ||
+    sending ||
+    uploading ||
+    emailBlocksSend
+
   return (
     <div className="flex flex-col h-full">
       {/* Presence strip */}
@@ -784,39 +800,47 @@ export function VisitorChatThread({
         <ChatPresenceBadge available={available} />
       </div>
 
-      <div className="relative flex-1 min-h-0">
-        <ScrollArea viewportRef={scrollViewportRef} scrollBarClassName="w-1.5" className="h-full">
-          <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
-            {virtualizer.getVirtualItems().map((vi) => (
-              <div
-                key={vi.key}
-                data-index={vi.index}
-                ref={virtualizer.measureElement}
-                className="absolute inset-x-0 top-0"
-                style={{ transform: `translateY(${vi.start}px)` }}
-              >
-                <div className="px-3 py-1.5">{renderRow(rows[vi.index])}</div>
-              </div>
-            ))}
+      {fillComposer ? (
+        hasGreeting && (
+          <div className="shrink-0 px-3 py-1.5">
+            {renderRow({ type: 'greeting', key: 'greeting' })}
           </div>
-        </ScrollArea>
+        )
+      ) : (
+        <div className="relative flex-1 min-h-0">
+          <ScrollArea viewportRef={scrollViewportRef} scrollBarClassName="w-1.5" className="h-full">
+            <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
+              {virtualizer.getVirtualItems().map((vi) => (
+                <div
+                  key={vi.key}
+                  data-index={vi.index}
+                  ref={virtualizer.measureElement}
+                  className="absolute inset-x-0 top-0"
+                  style={{ transform: `translateY(${vi.start}px)` }}
+                >
+                  <div className="px-3 py-1.5">{renderRow(rows[vi.index])}</div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
 
-        {/* Jump to latest — shown only when the visitor has scrolled up to read
+          {/* Jump to latest — shown only when the visitor has scrolled up to read
             history (followOnAppend keeps the view pinned when already at end). */}
-        {!virtualizer.isAtEnd() && (
-          <button
-            type="button"
-            onClick={() => virtualizer.scrollToEnd({ behavior: 'smooth' })}
-            aria-label={intl.formatMessage({
-              id: 'widget.chat.jumpToLatest',
-              defaultMessage: 'Jump to latest',
-            })}
-            className="absolute bottom-2 end-2 z-10 flex items-center justify-center size-8 rounded-full border border-border bg-card text-muted-foreground shadow-md hover:bg-muted hover:text-foreground transition-colors"
-          >
-            <ChevronDownIcon className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+          {!virtualizer.isAtEnd() && (
+            <button
+              type="button"
+              onClick={() => virtualizer.scrollToEnd({ behavior: 'smooth' })}
+              aria-label={intl.formatMessage({
+                id: 'widget.chat.jumpToLatest',
+                defaultMessage: 'Jump to latest',
+              })}
+              className="absolute bottom-2 end-2 z-10 flex items-center justify-center size-8 rounded-full border border-border bg-card text-muted-foreground shadow-md hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <ChevronDownIcon className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Help-center deflection: suggested articles as the visitor types. */}
       {helpResults.length > 0 && (
@@ -884,7 +908,12 @@ export function VisitorChatThread({
           <span className="h-px flex-1 bg-border/50" />
         </div>
       )}
-      <div className="border-t border-border/40 p-2 shrink-0">
+      <div
+        className={cn(
+          layout === 'widget' ? 'p-3' : 'border-t border-border/40 p-2',
+          fillComposer ? 'flex min-h-0 flex-1 flex-col gap-3' : 'shrink-0'
+        )}
+      >
         {/* Pre-chat email capture (anonymous visitors). */}
         {needsEmail && (
           <div className="px-1 pb-2">
@@ -935,7 +964,15 @@ export function VisitorChatThread({
               the attach button, and post links become embed cards), actions
               (attach / emoji / send) on the row below. Enter sends; Shift+Enter
               inserts a newline and the editor auto-grows to fit. */}
-        <div className="rounded-lg border border-border bg-background px-2.5 py-2 focus-within:ring-2 focus-within:ring-primary/20">
+        <div
+          className={cn(
+            layout === 'widget'
+              ? 'rounded-2xl bg-muted px-3 py-2.5 focus-within:ring-2 focus-within:ring-primary/20'
+              : 'rounded-lg border border-border bg-background px-2.5 py-2 focus-within:ring-2 focus-within:ring-primary/20',
+            fillComposer && 'flex min-h-0 flex-1 cursor-text flex-col'
+          )}
+          onClick={fillComposer ? () => composerRef.current?.focus() : undefined}
+        >
           <input
             ref={fileInputRef}
             type="file"
@@ -965,6 +1002,7 @@ export function VisitorChatThread({
             onSubmit={() => void send()}
             onLocalInput={onLocalInput}
             onImageFiles={(files) => void handleAddFiles(files)}
+            fill={fillComposer}
           />
           <ComposerAttachmentTray attachments={pendingAttachments} onRemove={removeAttachment} />
           {uploadError && <p className="px-1 pt-1 text-[11px] text-destructive">{uploadError}</p>}
@@ -989,24 +1027,34 @@ export function VisitorChatThread({
               onSelect={(emoji) => composerRef.current?.insertText(emoji)}
             />
             <div className="flex-1" />
-            <button
-              type="button"
-              onClick={() => void send()}
-              disabled={
-                (!messageText.trim() &&
-                  !messageHasContentNode &&
-                  pendingAttachments.length === 0) ||
-                sending ||
-                uploading ||
-                emailBlocksSend
-              }
-              className="shrink-0 flex items-center justify-center size-8 rounded-md bg-primary text-primary-foreground disabled:opacity-40 transition-opacity"
-              aria-label={intl.formatMessage({ id: 'widget.chat.send', defaultMessage: 'Send' })}
-            >
-              <PaperAirplaneIcon className="w-4 h-4" />
-            </button>
+            {!fillComposer && (
+              <button
+                type="button"
+                onClick={() => void send()}
+                disabled={sendDisabled}
+                className={cn(
+                  'shrink-0 flex items-center justify-center bg-primary text-primary-foreground disabled:opacity-40 transition-opacity',
+                  layout === 'widget' ? 'size-9 rounded-full' : 'size-8 rounded-md'
+                )}
+                aria-label={intl.formatMessage({ id: 'widget.chat.send', defaultMessage: 'Send' })}
+              >
+                <PaperAirplaneIcon className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
+        {/* Une nouvelle conversation : la capsule de l'application, comme « Proposer l'idee ». */}
+        {fillComposer && (
+          <button
+            type="button"
+            onClick={() => void send()}
+            disabled={sendDisabled}
+            className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold uppercase tracking-[0.08em] text-primary-foreground transition-opacity disabled:opacity-40"
+          >
+            <PaperAirplaneIcon className="size-4" />
+            <FormattedMessage id="widget.chat.sendLabel" defaultMessage="Send" />
+          </button>
+        )}
       </div>
     </div>
   )

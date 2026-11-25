@@ -34,6 +34,8 @@ interface ChatRichComposerProps {
    *  `uploadImage`, so a composer using a tray never inlines. */
   onImageFiles?: (files: File[]) => void
   className?: string
+  /** The editor takes all the height its parent gives it instead of capping at 8rem (the widget's new-conversation field). */
+  fill?: boolean
 }
 
 /** Imperative handle so the composer's toolbar (emoji, etc.) can drive the editor. */
@@ -68,6 +70,7 @@ export const ChatRichComposer = forwardRef<ChatRichComposerHandle, ChatRichCompo
       uploadImage,
       onImageFiles,
       className,
+      fill = false,
     },
     ref
   ) {
@@ -212,7 +215,13 @@ export const ChatRichComposer = forwardRef<ChatRichComposerHandle, ChatRichCompo
     // scroll viewport so the bar tracks the editor, not the outer flex box.
     return (
       <ScrollArea
-        className={cn('flex-1 [&_[data-slot=scroll-area-viewport]]:max-h-32', className)}
+        className={cn(
+          'flex-1',
+          fill
+            ? 'min-h-0 [&_[data-slot=scroll-area-viewport]]:h-full'
+            : '[&_[data-slot=scroll-area-viewport]]:max-h-32',
+          className
+        )}
         scrollBarClassName="w-1.5"
       >
         <EditorContent editor={editor} />

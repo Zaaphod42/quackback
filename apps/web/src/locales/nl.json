@@ -511,6 +511,8 @@
   "widget.chat.placeholder": "Typ uw bericht…",
   "widget.chat.seen": "Gezien",
   "widget.chat.send": "Verzenden",
+  "widget.chat.sendLabel": "Verzenden",
+  "widget.assistance.conversations": "Uw gesprekken",
   "widget.chat.startPrompt": "Stuur ons een bericht en wij komen bij u terug.",
   "widget.chat.suggestedArticles": "Voorgestelde artikelen",
   "widget.chat.system.assigned": "Toegewezen aan {name}",

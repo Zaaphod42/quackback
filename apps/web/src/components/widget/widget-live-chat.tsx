@@ -70,6 +70,7 @@ export function WidgetLiveChat({
       onAgentActivity={onAgentActivity}
       helpSearch={helpSearch}
       embedOpenMode="newTab"
+      layout="widget"
     />
   )
 }

@@ -511,6 +511,8 @@
   "widget.chat.placeholder": "Nachricht eingeben…",
   "widget.chat.seen": "Gelesen",
   "widget.chat.send": "Senden",
+  "widget.chat.sendLabel": "Senden",
+  "widget.assistance.conversations": "Ihre Unterhaltungen",
   "widget.chat.startPrompt": "Schreiben Sie uns eine Nachricht, und wir melden uns bei Ihnen.",
   "widget.chat.suggestedArticles": "Vorgeschlagene Artikel",
   "widget.chat.system.assigned": "Zugewiesen an {name}",

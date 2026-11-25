@@ -511,6 +511,8 @@
   "widget.chat.placeholder": "Scrivi un messaggio…",
   "widget.chat.seen": "Visualizzato",
   "widget.chat.send": "Invia",
+  "widget.chat.sendLabel": "Invia",
+  "widget.assistance.conversations": "Conversazioni",
   "widget.chat.startPrompt": "Inviare un messaggio e risponderemo il prima possibile.",
   "widget.chat.suggestedArticles": "Articoli suggeriti",
   "widget.chat.system.assigned": "Assegnata a {name}",
