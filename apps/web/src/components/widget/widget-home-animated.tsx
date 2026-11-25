@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, memo, useRef, useState } from 'react'
 import { usePillsScroll } from '@/lib/client/hooks/use-pills-scroll'
 import {
   TagIcon,
-  PencilIcon,
   LightbulbIcon,
   SearchIcon,
   XIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  MessageCircleIcon,
+  SendIcon,
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useIntl, FormattedMessage } from 'react-intl'
 import {
@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { listPublicPostsFn } from '@/lib/server/functions/public-posts'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { cn } from '@/lib/shared/utils'
 import { useInfiniteScroll } from '@/lib/client/hooks/use-infinite-scroll'
 import { WidgetVoteButton } from './widget-vote-button'
 import { useWidgetAuth } from './widget-auth-provider'
@@ -66,6 +68,12 @@ export interface WidgetHomeProps {
    */
   boardPermissions?: Record<string, { canSubmit: boolean; canVote: boolean }>
   defaultBoard?: string
+  /**
+   * L'ecran « Proposer une idee » est-il ouvert ? Tenu par la route : la fleche de retour de la coque en a besoin, et
+   * le brouillon reste en memoire quand on la prend (ce composant reste monte).
+   */
+  composing?: boolean
+  onComposingChange?: (composing: boolean) => void
   onPostSelect?: (postId: string) => void
   onPostCreated?: (post: {
     id: string
@@ -111,54 +119,78 @@ const WidgetPostRow = memo(
     onSelect?: () => void
   }) {
     const status = post.statusId ? (statusMap.get(post.statusId) ?? null) : null
+    const vote = (
+      <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+        <WidgetVoteButton
+          postId={post.id as PostId}
+          voteCount={post.voteCount}
+          compact={compact}
+          onBeforeVote={
+            canVote
+              ? async () => {
+                  let success = false
+                  await ensureSessionThen(() => {
+                    success = true
+                  })
+                  return success
+                }
+              : undefined
+          }
+          noAccessReason={!canVote ? noAccessReason : undefined}
+          onAuthRequired={!canVote ? onAuthRequired : undefined}
+        />
+      </div>
+    )
+
+    // Les idees similaires (sous le titre d'une proposition) restent des lignes serrees.
+    if (compact) {
+      return (
+        <div
+          className="flex w-full cursor-pointer items-center gap-2.5 overflow-hidden border-b border-border/60 px-1 py-1.5 transition-colors last:border-b-0 hover:bg-muted/40"
+          onClick={onSelect}
+        >
+          {vote}
+          <p className="line-clamp-1 min-w-0 flex-1 text-xs font-medium text-foreground">
+            {post.title}
+          </p>
+        </div>
+      )
+    }
+
+    // UNE CARTE PAR IDEE : le vote, le titre, puis l'etat et les commentaires.
     return (
       <div
-        className={`w-full overflow-hidden flex items-center gap-2.5 border-b border-border/60 last:border-b-0 hover:bg-muted/40 transition-colors cursor-pointer ${compact ? 'px-1 py-1.5' : 'px-1 py-3'}`}
+        className="flex w-full cursor-pointer items-start gap-3 overflow-hidden rounded-xl bg-card px-3.5 py-3 shadow-sm transition-shadow hover:shadow-md"
         onClick={onSelect}
       >
-        <div onClick={(e) => e.stopPropagation()} className="shrink-0">
-          <WidgetVoteButton
-            postId={post.id as PostId}
-            voteCount={post.voteCount}
-            compact={compact}
-            onBeforeVote={
-              canVote
-                ? async () => {
-                    let success = false
-                    await ensureSessionThen(() => {
-                      success = true
-                    })
-                    return success
-                  }
-                : undefined
-            }
-            noAccessReason={!canVote ? noAccessReason : undefined}
-            onAuthRequired={!canVote ? onAuthRequired : undefined}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
+        {vote}
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <p className="line-clamp-2 text-base font-semibold leading-tight text-foreground">
+            {post.title}
+          </p>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
             {status && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">
                 <span
-                  className="size-1.5 rounded-full shrink-0"
+                  className="size-1.5 shrink-0 rounded-full"
                   style={{ backgroundColor: status.color }}
                 />
                 {status.name}
               </span>
             )}
+            {post.commentCount > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <MessageCircleIcon className="size-3.5" />
+                {post.commentCount}
+              </span>
+            )}
             {showBoard && post.board && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
-                <TagIcon className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1">
+                <TagIcon className="size-3" />
                 {post.board.name}
               </span>
             )}
           </div>
-          <p
-            className={`font-medium text-foreground line-clamp-1 ${compact ? 'text-xs' : 'text-sm'}`}
-          >
-            {post.title}
-          </p>
         </div>
       </div>
     )
@@ -181,6 +213,8 @@ export function WidgetHomeAnimated({
   boards,
   boardPermissions,
   defaultBoard,
+  composing = false,
+  onComposingChange,
   onPostSelect,
   onPostCreated,
 }: WidgetHomeProps) {
@@ -196,10 +230,7 @@ export function WidgetHomeAnimated({
     identifyWithEmail,
   } = useWidgetAuth()
   const { upload: uploadImage } = useWidgetImageUpload()
-  const inputRef = useRef<HTMLInputElement>(null)
-
   const [title, setTitle] = useState('')
-  const [expanded, setExpanded] = useState(false)
   const [selectedBoardId, setSelectedBoardId] = useState(() => {
     if (defaultBoard) {
       const match = boards.find((b) => b.slug === defaultBoard)
@@ -248,8 +279,8 @@ export function WidgetHomeAnimated({
   const [popularSearch, setPopularSearch] = useState('')
   const [debouncedPopularSearch, setDebouncedPopularSearch] = useState('')
   const popularSearchDebounceRef = useRef<ReturnType<typeof setTimeout>>(null)
-  const [popularSearchOpen, setPopularSearchOpen] = useState(false)
-  const popularSearchInputRef = useRef<HTMLInputElement>(null)
+  const [sort, setSort] = useState<'top' | 'new'>('top')
+  const descriptionRef = useRef<HTMLDivElement>(null)
 
   const statusMap = useMemo(() => new Map(statuses.map((s) => [s.id, s])), [statuses])
 
@@ -261,11 +292,11 @@ export function WidgetHomeAnimated({
     isFetchingNextPage,
     isFetching: isFetchingPosts,
   } = useInfiniteQuery({
-    queryKey: ['widget', 'posts', 'popular', 'top', activeBoardSlug ?? 'all'],
+    queryKey: ['widget', 'posts', 'popular', sort, activeBoardSlug ?? 'all'],
     queryFn: ({ pageParam }) =>
       listPublicPostsFn({
         data: {
-          sort: 'top',
+          sort,
           page: pageParam,
           limit: 20,
           boardSlug: activeBoardSlug ?? undefined,
@@ -273,9 +304,9 @@ export function WidgetHomeAnimated({
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => (lastPage.hasMore ? allPages.length + 1 : undefined),
-    // Only seed from SSR data on the initial unfiltered view
+    // Only seed from SSR data on the initial unfiltered view (the SSR page is the 'top' sort)
     initialData:
-      activeBoardSlug === null
+      activeBoardSlug === null && sort === 'top'
         ? {
             pages: [{ items: initialPosts, total: -1, hasMore: initialHasMore }],
             pageParams: [1],
@@ -388,16 +419,8 @@ export function WidgetHomeAnimated({
     }
   }, [popularSearch])
 
-  useEffect(() => {
-    if (popularSearchOpen) {
-      popularSearchInputRef.current?.focus()
-    } else {
-      setPopularSearch('')
-    }
-  }, [popularSearchOpen])
-
   function collapseForm() {
-    setExpanded(false)
+    onComposingChange?.(false)
     setTitle('')
     setContentJson(null)
     setContentHtml('')
@@ -529,538 +552,457 @@ export function WidgetHomeAnimated({
   const canSubmitForm =
     title.trim() && selectedBoardId && (!needsEmail || email.trim()) && (canPost || needsEmail)
 
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full">
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-        <div className="w-full px-3 pt-2 pb-3">
-          <motion.div
-            className="rounded-xl border border-border bg-card overflow-hidden"
-            initial={false}
-            animate={{
-              boxShadow: expanded
-                ? '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)'
-                : '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-            }}
-            transition={{ duration: 0.2 }}
-          >
-            <AnimatePresence>
-              {expanded && boards.length > 1 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
+  // « Vous publiez en tant que... » : la mention sous le bouton de l'ecran de proposition.
+  const postingNote = submitNoAccess ? (
+    <FormattedMessage
+      id="widget.home.posting.noAccess"
+      defaultMessage="You don't have access to post on this board"
+    />
+  ) : user || (needsEmail && email.trim()) ? (
+    <FormattedMessage
+      id="widget.home.posting.postingAs"
+      defaultMessage="Posting as {name}"
+      values={{
+        name: (
+          <span className="font-medium text-foreground">
+            {user ? user.name || user.email : email.trim()}
+          </span>
+        ),
+      }}
+    />
+  ) : needsEmail ? (
+    <FormattedMessage
+      id="widget.home.posting.emailRequired"
+      defaultMessage="Your email is required"
+    />
+  ) : (
+    <FormattedMessage
+      id="widget.home.posting.postingAnonymously"
+      defaultMessage="Posting anonymously"
+    />
+  )
+
+  // ── L'ECRAN « PROPOSER UNE IDEE » (Seb 2026-11-24) : le titre, puis la description qui prend TOUTE la hauteur
+  //    disponible, puis le bouton, toujours visible en bas. La fleche de retour est celle de la coque.
+  if (composing) {
+    return (
+      <form onSubmit={handleSubmit} className="flex h-full flex-col">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pt-4">
+          {boards.length > 1 && (
+            <div className="flex shrink-0 items-center">
+              <span className="me-1 text-xs text-muted-foreground">
+                <FormattedMessage id="widget.home.posting.postingTo" defaultMessage="Posting to" />
+              </span>
+              <Select value={selectedBoardId} onValueChange={setSelectedBoardId}>
+                <SelectTrigger
+                  size="xs"
+                  className="border-0 bg-transparent font-medium text-foreground shadow-none hover:text-foreground/80 focus-visible:ring-0"
                 >
-                  <div className="flex items-center px-3 pt-2.5 pb-0.5">
-                    <span className="text-[11px] text-muted-foreground me-1">
-                      <FormattedMessage
-                        id="widget.home.posting.postingTo"
-                        defaultMessage="Posting to"
-                      />
-                    </span>
-                    <Select value={selectedBoardId} onValueChange={setSelectedBoardId}>
-                      <SelectTrigger
-                        size="xs"
-                        className="border-0 bg-transparent shadow-none font-medium text-foreground hover:text-foreground/80 focus-visible:ring-0"
-                      >
-                        <SelectValue
-                          placeholder={intl.formatMessage({
-                            id: 'widget.home.posting.selectBoard',
-                            defaultMessage: 'Select a board',
-                          })}
-                        />
-                      </SelectTrigger>
-                      <SelectContent align="start">
-                        {boards.map((b) => (
-                          <SelectItem key={b.id} value={b.id} className="text-xs py-1">
-                            {b.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <SelectValue
+                    placeholder={intl.formatMessage({
+                      id: 'widget.home.posting.selectBoard',
+                      defaultMessage: 'Select a board',
+                    })}
+                  />
+                </SelectTrigger>
+                <SelectContent align="start">
+                  {boards.map((b) => (
+                    <SelectItem key={b.id} value={b.id} className="py-1 text-xs">
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-            <div className="flex items-center gap-2.5 px-3 py-2.5">
-              <AnimatePresence>
-                {!expanded && (
-                  <motion.div
-                    initial={false}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8, width: 0, marginRight: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
-                  >
-                    <PencilIcon className="w-3.5 h-3.5" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+          <label
+            htmlFor="widget-idea-title"
+            className="-mb-1.5 shrink-0 text-[13px] font-semibold text-foreground"
+          >
+            <FormattedMessage id="widget.home.form.titleLabel" defaultMessage="Title" />
+          </label>
+          <input
+            id="widget-idea-title"
+            type="text"
+            autoFocus
+            maxLength={200}
+            placeholder={intl.formatMessage({
+              id: 'widget.home.form.titlePlaceholder',
+              defaultMessage: 'In one sentence',
+            })}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="h-11 shrink-0 rounded-xl bg-card px-3.5 text-[15px] text-foreground shadow-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/20"
+          />
 
-              <motion.input
-                ref={inputRef}
+          {!isSimilarSearching && similarPostResults && similarPostResults.posts.length > 0 && (
+            <div className="shrink-0">
+              <p className="mb-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                <LightbulbIcon className="h-3 w-3" />
+                <FormattedMessage id="widget.home.similar.heading" defaultMessage="Similar ideas" />
+              </p>
+              <div className="flex flex-col">
+                {similarPostResults.posts.slice(0, 2).map((post) => (
+                  <WidgetPostRow
+                    key={post.id}
+                    post={post}
+                    statusMap={statusMap}
+                    compact
+                    canVote={rowCanVote(post.board?.id)}
+                    ensureSessionThen={ensureSessionThen}
+                    noAccessReason={voteNoAccessReason}
+                    onAuthRequired={() => handleAuthRequired(post.id)}
+                    onSelect={() => onPostSelect?.(post.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <label className="-mb-1.5 shrink-0 text-[13px] font-semibold text-foreground">
+            <FormattedMessage id="widget.home.form.descriptionLabel" defaultMessage="Description" />
+          </label>
+          {/* Le champ prend toute la hauteur restante ; un appui n'importe ou dedans place le curseur. */}
+          <div
+            ref={descriptionRef}
+            className="min-h-[120px] flex-1 cursor-text overflow-y-auto rounded-xl bg-card px-3.5 py-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20"
+            onClick={() =>
+              descriptionRef.current?.querySelector<HTMLElement>('.ProseMirror')?.focus()
+            }
+          >
+            <RichTextEditor
+              value={contentJson || ''}
+              onChange={handleEditorChange}
+              placeholder={intl.formatMessage({
+                id: 'widget.home.form.descriptionPlaceholder',
+                defaultMessage: 'What would you like to be able to do?',
+              })}
+              minHeight="80px"
+              borderless
+              features={{
+                headings: true,
+                codeBlocks: true,
+                taskLists: true,
+                blockquotes: true,
+                dividers: true,
+                tables: true,
+                images: true,
+                embeds: true,
+                quackbackEmbeds: true,
+                bubbleMenu: true,
+                slashMenu: true,
+              }}
+              onImageUpload={uploadImage}
+              className="text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="flex shrink-0 flex-col gap-2 px-4 pb-4 pt-3">
+          {error && (
+            <div className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              {error}
+            </div>
+          )}
+          {needsEmail && (
+            <div className="flex gap-2">
+              <input
+                type="email"
+                required
+                placeholder={intl.formatMessage({
+                  id: 'widget.home.form.emailPlaceholder',
+                  defaultMessage: 'Your email',
+                })}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={`min-w-0 flex-1 ${identityInputCls}`}
+              />
+              <input
                 type="text"
                 placeholder={intl.formatMessage({
-                  id: 'widget.home.input.placeholder',
-                  defaultMessage: "What's your idea?",
+                  id: 'widget.home.form.namePlaceholder',
+                  defaultMessage: 'Name (optional)',
                 })}
-                value={title}
-                onChange={(e) => {
-                  const val = e.target.value
-                  setTitle(val)
-                  if (val && !expanded) setExpanded(true)
-                  if (!val && expanded && !contentHtml.trim()) setExpanded(false)
-                }}
-                onFocus={() => {
-                  if (title && !expanded) setExpanded(true)
-                }}
-                className="flex-1 bg-transparent border-0 outline-none text-foreground placeholder:text-muted-foreground/50 placeholder:font-normal caret-primary"
-                initial={false}
-                animate={{
-                  fontSize: expanded ? '1rem' : '0.875rem',
-                  fontWeight: expanded ? 600 : 400,
-                }}
-                transition={{ duration: 0.2 }}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={`w-28 shrink-0 ${identityInputCls}`}
               />
             </div>
+          )}
+          <p className="truncate text-[13px] italic text-muted-foreground">{postingNote}</p>
+          <button
+            type="submit"
+            disabled={!canSubmitForm || isSubmitting}
+            className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold uppercase tracking-[0.08em] text-primary-foreground transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <SendIcon className="size-4" />
+            {isSubmitting ? (
+              <FormattedMessage id="widget.home.form.submitting" defaultMessage="Submitting..." />
+            ) : (
+              <FormattedMessage
+                id="widget.home.form.submitIdea"
+                defaultMessage="Propose the idea"
+              />
+            )}
+          </button>
+        </div>
+      </form>
+    )
+  }
 
-            <AnimatePresence>
-              {expanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-                  className="overflow-hidden"
-                >
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2, delay: 0.1 }}
-                    className="px-3 pb-2"
-                  >
-                    <RichTextEditor
-                      value={contentJson || ''}
-                      onChange={handleEditorChange}
-                      placeholder={intl.formatMessage({
-                        id: 'widget.home.input.details',
-                        defaultMessage: 'Add more details...',
-                      })}
-                      minHeight="80px"
-                      borderless
-                      features={{
-                        headings: true,
-                        codeBlocks: true,
-                        taskLists: true,
-                        blockquotes: true,
-                        dividers: true,
-                        tables: true,
-                        images: true,
-                        embeds: true,
-                        quackbackEmbeds: true,
-                        bubbleMenu: true,
-                        slashMenu: true,
-                      }}
-                      onImageUpload={uploadImage}
-                      className="text-sm"
-                    />
-                  </motion.div>
+  // ── LE TABLEAU DES IDEES : proposer, rechercher, trier, puis une carte par idee.
+  const searching = debouncedPopularSearch.length > 0
+  const searchPending = isPopularSearchFetching || popularSearch !== debouncedPopularSearch
 
-                  <AnimatePresence>
-                    {!isSimilarSearching &&
-                      similarPostResults &&
-                      similarPostResults.posts.length > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.15, ease: 'easeOut' }}
-                          className="overflow-hidden"
-                        >
-                          <div className="px-3 pb-2">
-                            <p className="text-[11px] font-medium text-muted-foreground/60 flex items-center gap-1 mb-1.5">
-                              <LightbulbIcon className="w-3 h-3" />
-                              <FormattedMessage
-                                id="widget.home.similar.heading"
-                                defaultMessage="Similar ideas"
-                              />
-                            </p>
-                            <div className="flex flex-col">
-                              {similarPostResults.posts.slice(0, 3).map((post) => (
-                                <WidgetPostRow
-                                  key={post.id}
-                                  post={post}
-                                  statusMap={statusMap}
-                                  compact
-                                  canVote={rowCanVote(post.board?.id)}
-                                  ensureSessionThen={ensureSessionThen}
-                                  noAccessReason={voteNoAccessReason}
-                                  onAuthRequired={() => handleAuthRequired(post.id)}
-                                  onSelect={() => onPostSelect?.(post.id)}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                  </AnimatePresence>
+  function proposeFromSearch() {
+    // La recherche devient le titre de l'idee (200 signes au plus, la limite du serveur).
+    setTitle(popularSearch.trim().slice(0, 200))
+    setPopularSearch('')
+    onComposingChange?.(true)
+  }
 
-                  {error && (
-                    <div className="px-3 pb-2">
-                      <div className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                        {error}
-                      </div>
-                    </div>
-                  )}
+  const proposeButton = (label: React.ReactNode, onClick: () => void, className?: string) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold uppercase tracking-[0.08em] text-primary-foreground transition-opacity hover:opacity-90',
+        className
+      )}
+    >
+      <LightbulbIcon className="size-4" />
+      {label}
+    </button>
+  )
 
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2, delay: 0.15 }}
-                    className="border-t border-border bg-muted/30"
-                  >
-                    {needsEmail && (
-                      <div className="px-3 pt-2 pb-1 flex gap-2">
-                        <input
-                          type="email"
-                          required
-                          placeholder={intl.formatMessage({
-                            id: 'widget.home.form.emailPlaceholder',
-                            defaultMessage: 'Your email',
-                          })}
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className={`flex-1 min-w-0 ${identityInputCls}`}
-                        />
-                        <input
-                          type="text"
-                          placeholder={intl.formatMessage({
-                            id: 'widget.home.form.namePlaceholder',
-                            defaultMessage: 'Name (optional)',
-                          })}
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          className={`w-28 shrink-0 ${identityInputCls}`}
-                        />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between px-3 py-2">
-                      <p className="text-[11px] text-muted-foreground truncate me-2">
-                        {submitNoAccess ? (
-                          <FormattedMessage
-                            id="widget.home.posting.noAccess"
-                            defaultMessage="You don't have access to post on this board"
-                          />
-                        ) : user ? (
-                          <FormattedMessage
-                            id="widget.home.posting.postingAs"
-                            defaultMessage="Posting as {name}"
-                            values={{
-                              name: (
-                                <span className="font-medium text-foreground">
-                                  {user.name || user.email}
-                                </span>
-                              ),
-                            }}
-                          />
-                        ) : needsEmail ? (
-                          email.trim() ? (
-                            <FormattedMessage
-                              id="widget.home.posting.postingAs"
-                              defaultMessage="Posting as {name}"
-                              values={{
-                                name: (
-                                  <span className="font-medium text-foreground">
-                                    {email.trim()}
-                                  </span>
-                                ),
-                              }}
-                            />
-                          ) : (
-                            <FormattedMessage
-                              id="widget.home.posting.emailRequired"
-                              defaultMessage="Your email is required"
-                            />
-                          )
-                        ) : (
-                          <FormattedMessage
-                            id="widget.home.posting.postingAnonymously"
-                            defaultMessage="Posting anonymously"
-                          />
-                        )}
-                      </p>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={collapseForm}
-                          className="px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <FormattedMessage id="widget.home.form.cancel" defaultMessage="Cancel" />
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={!canSubmitForm || isSubmitting}
-                          className="px-3 py-1 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                        >
-                          {isSubmitting ? (
-                            <FormattedMessage
-                              id="widget.home.form.submitting"
-                              defaultMessage="Submitting..."
-                            />
-                          ) : (
-                            <FormattedMessage
-                              id="widget.home.form.submit"
-                              defaultMessage="Submit"
-                            />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+  const renderCards = (posts: WidgetPost[]) =>
+    posts.map((post) => (
+      <WidgetPostRow
+        key={post.id}
+        post={post}
+        statusMap={statusMap}
+        showBoard={boards.length > 1}
+        canVote={rowCanVote(post.board?.id)}
+        ensureSessionThen={ensureSessionThen}
+        noAccessReason={voteNoAccessReason}
+        onAuthRequired={() => handleAuthRequired(post.id)}
+        onSelect={() => onPostSelect?.(post.id)}
+      />
+    ))
 
-          {/* Diafane: questions belong in the Help tab, this panel is for improvements. */}
-          <p className="px-1 pt-2 text-xs text-muted-foreground">
-            <FormattedMessage
-              id="widget.home.input.helpHint"
-              defaultMessage="A question or a problem? Use the <b>Help</b> tab."
-              values={{ b: (chunks) => <strong className="font-semibold">{chunks}</strong> }}
-            />
-          </p>
+  const emptyState = (
+    icon: React.ReactNode,
+    titre: React.ReactNode,
+    texte: React.ReactNode,
+    bouton?: React.ReactNode
+  ) => (
+    <div className="flex flex-1 flex-col items-center justify-center gap-2.5 px-3 py-6 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-muted text-foreground">
+        {icon}
+      </span>
+      <h3
+        className="mt-1.5 text-[26px] font-normal leading-tight text-foreground"
+        style={{ fontFamily: "'Glass Antiqua', Georgia, serif" }}
+      >
+        {titre}
+      </h3>
+      <p className="max-w-[28ch] text-balance text-[15px] text-muted-foreground">{texte}</p>
+      {bouton && <div className="mt-2 flex w-full flex-col">{bouton}</div>}
+    </div>
+  )
 
-          {/* Popular ideas */}
-          <div className="mt-2">
-            <div className="flex items-center justify-between px-1 h-7">
-              {popularSearchOpen ? (
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <SearchIcon className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
-                  <input
-                    ref={popularSearchInputRef}
-                    type="text"
-                    value={popularSearch}
-                    onChange={(e) => setPopularSearch(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') e.preventDefault()
-                    }}
-                    placeholder={intl.formatMessage({
-                      id: 'widget.home.popular.search.placeholder',
-                      defaultMessage: 'Search ideas...',
-                    })}
-                    className="flex-1 min-w-0 h-5 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/50 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setPopularSearchOpen(false)}
-                    className="shrink-0 text-muted-foreground/60 hover:text-foreground transition-colors"
-                  >
-                    <XIcon className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    <FormattedMessage
-                      id="widget.home.popular.heading"
-                      defaultMessage="Popular ideas"
-                    />
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setPopularSearchOpen(true)}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={intl.formatMessage({
-                      id: 'widget.home.popular.search.aria',
-                      defaultMessage: 'Search ideas',
-                    })}
-                  >
-                    <SearchIcon className="w-3.5 h-3.5" />
-                  </button>
-                </>
-              )}
-            </div>
+  return (
+    <ScrollArea scrollBarClassName="w-1.5" className="h-full">
+      <div className="flex min-h-full flex-col gap-3 px-4 py-4">
+        {proposeButton(
+          <FormattedMessage id="widget.home.propose" defaultMessage="Propose an idea" />,
+          () => onComposingChange?.(true)
+        )}
 
-            {boards.length >= 2 && (
-              <div className="relative mb-2">
-                <div
-                  ref={pills.ref}
-                  className="flex gap-1 overflow-x-auto scrollbar-none px-1 pb-0.5"
-                >
-                  {boards.map((board) => (
-                    <button
-                      key={board.id}
-                      type="button"
-                      onClick={() =>
-                        setActiveBoardSlug(activeBoardSlug === board.slug ? null : board.slug)
-                      }
-                      className={`rounded-full text-xs px-2 py-0.5 whitespace-nowrap transition-colors shrink-0 ${
-                        activeBoardSlug === board.slug
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted'
-                      }`}
-                    >
-                      {board.name}
-                    </button>
-                  ))}
-                </div>
-                {pills.canScrollLeft && (
-                  <button
-                    type="button"
-                    onClick={() => pills.scrollBy(-120)}
-                    className="absolute start-0 top-0 bottom-0.5 flex items-center ps-0.5 pe-6 bg-gradient-to-r from-background via-background/80 to-transparent"
-                    aria-label={intl.formatMessage({
-                      id: 'widget.home.scroll.ariaLeft',
-                      defaultMessage: 'Scroll left',
-                    })}
-                  >
-                    <ChevronLeftIcon className="w-3 h-3 text-muted-foreground" />
-                  </button>
+        <label className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-card px-3.5 text-sm shadow-sm focus-within:ring-2 focus-within:ring-primary/20">
+          <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
+          <input
+            type="text"
+            value={popularSearch}
+            onChange={(e) => setPopularSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.preventDefault()
+            }}
+            placeholder={intl.formatMessage({
+              id: 'widget.home.popular.search.placeholder',
+              defaultMessage: 'Search ideas...',
+            })}
+            aria-label={intl.formatMessage({
+              id: 'widget.home.popular.search.aria',
+              defaultMessage: 'Search ideas',
+            })}
+            className="min-w-0 flex-1 truncate bg-transparent text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          {popularSearch && (
+            <button
+              type="button"
+              onClick={() => setPopularSearch('')}
+              aria-label={intl.formatMessage({
+                id: 'widget.home.popular.search.clear',
+                defaultMessage: 'Clear search',
+              })}
+              className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground"
+            >
+              <XIcon className="size-3.5" />
+            </button>
+          )}
+        </label>
+
+        {!searching && (
+          <div className="flex h-9 shrink-0 rounded-full bg-muted p-[3px] text-[13px] font-semibold">
+            {(['top', 'new'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={sort === value}
+                onClick={() => setSort(value)}
+                className={cn(
+                  'flex-1 rounded-full transition-colors',
+                  sort === value ? 'bg-foreground text-background' : 'text-muted-foreground'
                 )}
-                {pills.canScrollRight && (
-                  <button
-                    type="button"
-                    onClick={() => pills.scrollBy(120)}
-                    className="absolute end-0 top-0 bottom-0.5 flex items-center pe-0.5 ps-6 bg-gradient-to-l from-background via-background/80 to-transparent"
-                    aria-label={intl.formatMessage({
-                      id: 'widget.home.scroll.ariaRight',
-                      defaultMessage: 'Scroll right',
-                    })}
-                  >
-                    <ChevronRightIcon className="w-3 h-3 text-muted-foreground" />
-                  </button>
+              >
+                {value === 'top' ? (
+                  <FormattedMessage id="widget.home.sort.top" defaultMessage="Popular" />
+                ) : (
+                  <FormattedMessage id="widget.home.sort.new" defaultMessage="Recent" />
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {boards.length >= 2 && (
+          <div className="relative shrink-0">
+            <div ref={pills.ref} className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+              {boards.map((board) => (
+                <button
+                  key={board.id}
+                  type="button"
+                  onClick={() =>
+                    setActiveBoardSlug(activeBoardSlug === board.slug ? null : board.slug)
+                  }
+                  className={cn(
+                    'shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                    activeBoardSlug === board.slug
+                      ? 'bg-foreground text-background'
+                      : 'bg-card text-muted-foreground shadow-sm hover:text-foreground'
+                  )}
+                >
+                  {board.name}
+                </button>
+              ))}
+            </div>
+            {pills.canScrollLeft && (
+              <button
+                type="button"
+                onClick={() => pills.scrollBy(-120)}
+                className="absolute bottom-0.5 start-0 top-0 flex items-center bg-gradient-to-r from-background via-background/80 to-transparent pe-6 ps-0.5"
+                aria-label={intl.formatMessage({
+                  id: 'widget.home.scroll.ariaLeft',
+                  defaultMessage: 'Scroll left',
+                })}
+              >
+                <ChevronLeftIcon className="size-3 text-muted-foreground" />
+              </button>
+            )}
+            {pills.canScrollRight && (
+              <button
+                type="button"
+                onClick={() => pills.scrollBy(120)}
+                className="absolute bottom-0.5 end-0 top-0 flex items-center bg-gradient-to-l from-background via-background/80 to-transparent pe-0.5 ps-6"
+                aria-label={intl.formatMessage({
+                  id: 'widget.home.scroll.ariaRight',
+                  defaultMessage: 'Scroll right',
+                })}
+              >
+                <ChevronRightIcon className="size-3 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {searching ? (
+          searchPending ? (
+            <div className="flex justify-center py-4 text-xs text-muted-foreground">
+              <FormattedMessage
+                id="widget.home.popular.search.searching"
+                defaultMessage="Searching..."
+              />
+            </div>
+          ) : (popularSearchData?.posts.length ?? 0) === 0 ? (
+            // Aucun resultat : le message ne repete PAS la recherche (elle peut etre tres longue, et le champ
+            // la montre deja) ; le bouton la reprend comme titre de l'idee.
+            emptyState(
+              <SearchIcon className="size-7" />,
+              <FormattedMessage
+                id="widget.home.popular.search.noResults"
+                defaultMessage="No ideas found"
+              />,
+              <FormattedMessage
+                id="widget.home.popular.search.noMatch"
+                defaultMessage="No idea matches your search."
+              />,
+              proposeButton(
+                <FormattedMessage
+                  id="widget.home.proposeThis"
+                  defaultMessage="Propose this idea"
+                />,
+                proposeFromSearch
+              )
+            )
+          ) : (
+            renderCards(popularSearchData!.posts)
+          )
+        ) : isFetchingPosts && !isFetchingNextPage && allPopularPosts.length === 0 ? (
+          <div className="flex justify-center py-4 text-xs text-muted-foreground">
+            <FormattedMessage id="widget.home.popular.loading" defaultMessage="Loading..." />
+          </div>
+        ) : allPopularPosts.length === 0 ? (
+          emptyState(
+            <LightbulbIcon className="size-7" />,
+            activeBoardSlug ? (
+              <FormattedMessage
+                id="widget.home.popular.emptyBoard"
+                defaultMessage="No ideas in this board yet"
+              />
+            ) : (
+              <FormattedMessage id="widget.home.popular.empty" defaultMessage="No ideas yet" />
+            ),
+            !activeBoardSlug ? (
+              <FormattedMessage
+                id="widget.home.popular.emptyHint"
+                defaultMessage="Be the first to share one!"
+              />
+            ) : undefined,
+            proposeButton(
+              <FormattedMessage id="widget.home.propose" defaultMessage="Propose an idea" />,
+              () => onComposingChange?.(true)
+            )
+          )
+        ) : (
+          <>
+            {renderCards(allPopularPosts)}
+            {hasNextPage && (
+              <div ref={postsSentinelRef} className="flex justify-center py-2">
+                {isFetchingNextPage && (
+                  <span className="text-xs text-muted-foreground">
+                    <FormattedMessage
+                      id="widget.home.popular.loading"
+                      defaultMessage="Loading..."
+                    />
+                  </span>
                 )}
               </div>
             )}
-
-            {debouncedPopularSearch.length > 0 && (
-              <>
-                {(isPopularSearchFetching || popularSearch !== debouncedPopularSearch) && (
-                  <div className="flex justify-center py-4">
-                    <span className="text-[10px] text-muted-foreground/50">
-                      <FormattedMessage
-                        id="widget.home.popular.search.searching"
-                        defaultMessage="Searching..."
-                      />
-                    </span>
-                  </div>
-                )}
-                {!isPopularSearchFetching &&
-                  popularSearch === debouncedPopularSearch &&
-                  (popularSearchData?.posts.length ?? 0) === 0 && (
-                    <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <SearchIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
-                      <p className="text-sm font-medium text-muted-foreground/70">
-                        <FormattedMessage
-                          id="widget.home.popular.search.noResults"
-                          defaultMessage="No ideas found"
-                        />
-                      </p>
-                      <p className="text-xs text-muted-foreground/50 mt-0.5">
-                        <FormattedMessage
-                          id="widget.home.popular.search.noResultsHint"
-                          defaultMessage="Try a different search term"
-                        />
-                      </p>
-                    </div>
-                  )}
-                {!isPopularSearchFetching &&
-                  popularSearch === debouncedPopularSearch &&
-                  (popularSearchData?.posts.length ?? 0) > 0 && (
-                    <div className="flex flex-col">
-                      {popularSearchData!.posts.map((post) => (
-                        <WidgetPostRow
-                          key={post.id}
-                          post={post}
-                          statusMap={statusMap}
-                          showBoard
-                          canVote={rowCanVote(post.board?.id)}
-                          ensureSessionThen={ensureSessionThen}
-                          noAccessReason={voteNoAccessReason}
-                          onAuthRequired={() => handleAuthRequired(post.id)}
-                          onSelect={() => onPostSelect?.(post.id)}
-                        />
-                      ))}
-                    </div>
-                  )}
-              </>
-            )}
-
-            {debouncedPopularSearch.length === 0 && (
-              <>
-                {isFetchingPosts && !isFetchingNextPage && allPopularPosts.length === 0 && (
-                  <div className="flex justify-center py-4">
-                    <span className="text-[10px] text-muted-foreground/50">
-                      <FormattedMessage
-                        id="widget.home.popular.loading"
-                        defaultMessage="Loading..."
-                      />
-                    </span>
-                  </div>
-                )}
-                {!isFetchingPosts && allPopularPosts.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <LightbulbIcon className="w-8 h-8 text-muted-foreground/30 mb-2" />
-                    <p className="text-sm font-medium text-muted-foreground/70">
-                      {activeBoardSlug ? (
-                        <FormattedMessage
-                          id="widget.home.popular.emptyBoard"
-                          defaultMessage="No ideas in this board yet"
-                        />
-                      ) : (
-                        <FormattedMessage
-                          id="widget.home.popular.empty"
-                          defaultMessage="No ideas yet"
-                        />
-                      )}
-                    </p>
-                    {!activeBoardSlug && (
-                      <p className="text-xs text-muted-foreground/50 mt-0.5">
-                        <FormattedMessage
-                          id="widget.home.popular.emptyHint"
-                          defaultMessage="Be the first to share one!"
-                        />
-                      </p>
-                    )}
-                  </div>
-                )}
-                {allPopularPosts.length > 0 && (
-                  <div className="flex flex-col">
-                    {allPopularPosts.map((post) => (
-                      <WidgetPostRow
-                        key={post.id}
-                        post={post}
-                        statusMap={statusMap}
-                        showBoard
-                        canVote={rowCanVote(post.board?.id)}
-                        ensureSessionThen={ensureSessionThen}
-                        noAccessReason={voteNoAccessReason}
-                        onAuthRequired={() => handleAuthRequired(post.id)}
-                        onSelect={() => onPostSelect?.(post.id)}
-                      />
-                    ))}
-                    {hasNextPage && (
-                      <div ref={postsSentinelRef} className="flex justify-center py-2">
-                        {isFetchingNextPage && (
-                          <span className="text-[10px] text-muted-foreground/50">
-                            <FormattedMessage
-                              id="widget.home.popular.loading"
-                              defaultMessage="Loading..."
-                            />
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
-    </form>
+    </ScrollArea>
   )
 }

@@ -100,9 +100,15 @@ describe('WidgetShell', () => {
     expect(container.querySelector('.h-\\[60px\\]')).not.toBeNull()
   })
 
-  it('dans un detail ou une conversation : la fleche de retour seule, aucun titre', () => {
-    const { container } = monter({ onBack: () => {} })
+  it('dans une conversation : la fleche de retour seule, aucun titre', () => {
+    const { container } = monter({ onBack: () => {}, hideTitle: true })
     expect(container.querySelector('h2')).toBeNull()
     expect(container.querySelector('button[aria-label="Go back"]')).not.toBeNull()
+  })
+
+  it("dans le detail d'une idee ou la proposition : la fleche de retour ET le titre", () => {
+    const { container } = monter({ onBack: () => {}, activeTab: 'feedback' })
+    expect(container.querySelector('button[aria-label="Go back"]')).not.toBeNull()
+    expect(container.querySelector('h2')?.textContent).toBe('Vos idées')
   })
 })

@@ -9,7 +9,10 @@ interface WidgetPortalTitleProps {
 export function WidgetPortalTitle({ title, onClick }: WidgetPortalTitleProps) {
   return (
     <button type="button" onClick={onClick} className="group text-left mt-0.5 block">
-      <h2 className="text-[15px] font-semibold text-foreground leading-snug group-hover:text-primary transition-colors inline">
+      <h2
+        className="text-[28px] font-normal text-foreground leading-[1.08] group-hover:text-primary transition-colors inline"
+        style={{ fontFamily: "'Glass Antiqua', Georgia, serif" }}
+      >
         {title}
       </h2>
       <ExternalLinkIcon className="h-4 w-4 text-muted-foreground/40 inline ml-1.5 mb-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />

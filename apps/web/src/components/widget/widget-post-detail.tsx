@@ -170,160 +170,165 @@ export function WidgetPostDetail({ postId, statuses }: WidgetPostDetailProps) {
     )
   }
 
-  return (
-    <ScrollArea ref={scrollAreaRef} scrollBarClassName="w-1.5" className="flex-1 h-full">
-      <div className="px-3 pt-3 pb-4 space-y-3">
-        {/* Header: mirrors widget listing layout (vote left, status/title right) */}
-        <div className="flex items-start gap-3">
-          <div className="shrink-0 mt-0.5">
-            <WidgetVoteButton
-              postId={postId as PostId}
-              voteCount={post.voteCount}
-              onBeforeVote={
-                canVote
-                  ? async () => {
-                      let success = false
-                      await ensureSessionThen(() => {
-                        success = true
-                      })
-                      return success
-                    }
-                  : undefined
-              }
-              noAccessReason={voteNoAccessReason}
-              onAuthRequired={!canVote ? handleViewOnPortal : undefined}
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              {status && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <span
-                    className="size-2 rounded-full shrink-0"
-                    style={{ backgroundColor: status.color }}
-                  />
-                  {status.name}
-                </span>
-              )}
-            </div>
-            <WidgetPortalTitle title={post.title} onClick={handleViewOnPortal} />
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 mt-1">
-              <span>
-                {post.authorName ||
-                  intl.formatMessage({
-                    id: 'widget.postDetail.authorFallback',
-                    defaultMessage: 'Anonymous',
-                  })}
-              </span>
-              <span className="text-muted-foreground/30">&middot;</span>
-              <TimeAgo date={post.createdAt} />
-              <span className="text-muted-foreground/30">&middot;</span>
-              <span className="inline-flex items-center gap-0.5">
-                <TagIcon className="h-3 w-3 text-muted-foreground/40" />
-                {post.board.name}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Post body */}
-        {post.content && (
-          <PostContent
-            content={post.content}
-            contentJson={post.contentJson}
-            className="text-[13px] text-foreground/80 leading-relaxed"
-          />
-        )}
-
-        {/* Pinned comment / official response */}
-        {post.pinnedComment && (
-          <div className="rounded-md border border-primary/20 bg-primary/[0.03] p-2.5">
-            <p className="text-[11px] font-medium text-primary mb-1">
-              <FormattedMessage
-                id="widget.postDetail.officialResponse"
-                defaultMessage="Official response"
-              />
-            </p>
-            <p className="text-xs text-foreground/80 whitespace-pre-wrap leading-relaxed">
-              {post.pinnedComment.content}
-            </p>
-            <p className="text-[11px] text-muted-foreground/60 mt-1">
-              &mdash;{' '}
-              {post.pinnedComment.authorName ||
-                intl.formatMessage({
-                  id: 'widget.postDetail.teamAuthorFallback',
-                  defaultMessage: 'Team',
-                })}
-            </p>
-          </div>
-        )}
-
-        {/* Comments section */}
-        <div className="border-t border-border/50 pt-3">
-          <div className="flex items-center gap-1.5 mb-3">
-            <MessageSquareIcon className="h-3.5 w-3.5 text-muted-foreground/50" />
-            <span className="text-xs font-medium text-muted-foreground">
-              <FormattedMessage
-                id="widget.postDetail.comments"
-                defaultMessage="{count, plural, one {# comment} other {# comments}}"
-                values={{ count: liveCommentCount }}
-              />
-            </span>
-          </div>
-
-          {/* Identified viewer denied by the board's comment tier (segments/team)
-              — authorization, not auth: state it, no form or login prompt. */}
-          {!post.isCommentsLocked && commentNoAccess && (
-            <p className="text-xs text-muted-foreground/70 mb-3">
-              <FormattedMessage
-                id="widget.postDetail.commentNoAccess"
-                defaultMessage="You don't have access to comment on this board"
-              />
-            </p>
-          )}
-
-          {/* Root comment form — unified: textarea + email (when anonymous) + single Post.
-              For an anonymous viewer the email field escalates them to a real user. */}
-          {!post.isCommentsLocked && !commentNoAccess && !hmacRequired && (
-            <WidgetCommentForm
-              isIdentified={isIdentified}
-              user={user}
-              onSubmit={submitComment}
-              identifyWithEmail={identifyWithEmail}
-            />
-          )}
-
-          {!post.isCommentsLocked && !commentNoAccess && hmacRequired && !canComment && (
-            <button
-              type="button"
-              onClick={handleViewOnPortal}
-              className="text-xs text-primary hover:text-primary/80 transition-colors mb-3"
-            >
-              <FormattedMessage
-                id="widget.postDetail.loginToComment"
-                defaultMessage="Log in to join the conversation"
-              />
-            </button>
-          )}
-
-          {post.isCommentsLocked && (
-            <p className="text-xs text-muted-foreground/50 mb-3">
-              <FormattedMessage
-                id="widget.postDetail.commentsLocked"
-                defaultMessage="Comments are locked on this post"
-              />
-            </p>
-          )}
-
-          <WidgetCommentList
-            comments={post.comments}
-            pinnedCommentId={post.pinnedCommentId}
-            canComment={canComment && !post.isCommentsLocked}
-            onSubmitComment={handleSubmitReply}
-          />
-        </div>
+  // LA SAISIE D'UN COMMENTAIRE RESTE EN BAS (Seb 2026-11-24) : la liste defile au-dessus, le champ ne bouge pas.
+  const commentDock =
+    !post.isCommentsLocked && !commentNoAccess && !hmacRequired ? (
+      <div className="shrink-0 border-t border-border bg-card px-3 py-3">
+        <WidgetCommentForm
+          isIdentified={isIdentified}
+          user={user}
+          onSubmit={submitComment}
+          identifyWithEmail={identifyWithEmail}
+        />
       </div>
-    </ScrollArea>
+    ) : null
+
+  return (
+    <div className="flex h-full flex-col">
+      <ScrollArea ref={scrollAreaRef} scrollBarClassName="w-1.5" className="min-h-0 flex-1">
+        <div className="px-3 pt-3 pb-4 space-y-3">
+          {/* Header: mirrors widget listing layout (vote left, status/title right) */}
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 mt-0.5">
+              <WidgetVoteButton
+                postId={postId as PostId}
+                voteCount={post.voteCount}
+                onBeforeVote={
+                  canVote
+                    ? async () => {
+                        let success = false
+                        await ensureSessionThen(() => {
+                          success = true
+                        })
+                        return success
+                      }
+                    : undefined
+                }
+                noAccessReason={voteNoAccessReason}
+                onAuthRequired={!canVote ? handleViewOnPortal : undefined}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                {status && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
+                    <span
+                      className="size-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: status.color }}
+                    />
+                    {status.name}
+                  </span>
+                )}
+              </div>
+              <WidgetPortalTitle title={post.title} onClick={handleViewOnPortal} />
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 mt-1">
+                <span>
+                  {post.authorName ||
+                    intl.formatMessage({
+                      id: 'widget.postDetail.authorFallback',
+                      defaultMessage: 'Anonymous',
+                    })}
+                </span>
+                <span className="text-muted-foreground/30">&middot;</span>
+                <TimeAgo date={post.createdAt} />
+                <span className="text-muted-foreground/30">&middot;</span>
+                <span className="inline-flex items-center gap-0.5">
+                  <TagIcon className="h-3 w-3 text-muted-foreground/40" />
+                  {post.board.name}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Post body */}
+          {post.content && (
+            <PostContent
+              content={post.content}
+              contentJson={post.contentJson}
+              className="text-[13px] text-foreground/80 leading-relaxed"
+            />
+          )}
+
+          {/* Pinned comment / official response */}
+          {post.pinnedComment && (
+            <div className="rounded-md border border-primary/20 bg-primary/[0.03] p-2.5">
+              <p className="text-[11px] font-medium text-primary mb-1">
+                <FormattedMessage
+                  id="widget.postDetail.officialResponse"
+                  defaultMessage="Official response"
+                />
+              </p>
+              <p className="text-xs text-foreground/80 whitespace-pre-wrap leading-relaxed">
+                {post.pinnedComment.content}
+              </p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1">
+                &mdash;{' '}
+                {post.pinnedComment.authorName ||
+                  intl.formatMessage({
+                    id: 'widget.postDetail.teamAuthorFallback',
+                    defaultMessage: 'Team',
+                  })}
+              </p>
+            </div>
+          )}
+
+          {/* Comments section */}
+          <div className="border-t border-border/50 pt-3">
+            <div className="flex items-center gap-1.5 mb-3">
+              <MessageSquareIcon className="h-3.5 w-3.5 text-muted-foreground/50" />
+              <span className="text-xs font-medium text-muted-foreground">
+                <FormattedMessage
+                  id="widget.postDetail.comments"
+                  defaultMessage="{count, plural, one {# comment} other {# comments}}"
+                  values={{ count: liveCommentCount }}
+                />
+              </span>
+            </div>
+
+            {/* Identified viewer denied by the board's comment tier (segments/team)
+              — authorization, not auth: state it, no form or login prompt. */}
+            {!post.isCommentsLocked && commentNoAccess && (
+              <p className="text-xs text-muted-foreground/70 mb-3">
+                <FormattedMessage
+                  id="widget.postDetail.commentNoAccess"
+                  defaultMessage="You don't have access to comment on this board"
+                />
+              </p>
+            )}
+
+            {!post.isCommentsLocked && !commentNoAccess && hmacRequired && !canComment && (
+              <button
+                type="button"
+                onClick={handleViewOnPortal}
+                className="text-xs text-primary hover:text-primary/80 transition-colors mb-3"
+              >
+                <FormattedMessage
+                  id="widget.postDetail.loginToComment"
+                  defaultMessage="Log in to join the conversation"
+                />
+              </button>
+            )}
+
+            {post.isCommentsLocked && (
+              <p className="text-xs text-muted-foreground/50 mb-3">
+                <FormattedMessage
+                  id="widget.postDetail.commentsLocked"
+                  defaultMessage="Comments are locked on this post"
+                />
+              </p>
+            )}
+
+            <WidgetCommentList
+              comments={post.comments}
+              pinnedCommentId={post.pinnedCommentId}
+              canComment={canComment && !post.isCommentsLocked}
+              onSubmitComment={handleSubmitReply}
+            />
+          </div>
+        </div>
+      </ScrollArea>
+      {commentDock}
+    </div>
   )
 }
 

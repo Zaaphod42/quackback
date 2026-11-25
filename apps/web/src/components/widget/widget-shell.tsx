@@ -59,6 +59,11 @@ interface WidgetShellProps {
   activeTab: WidgetTab
   onTabChange: (tab: WidgetTab) => void
   onBack?: () => void
+  /**
+   * Cache le titre de l'onglet a cote de la fleche de retour : une conversation n'en porte pas (Seb 2026-11-24),
+   * alors que le detail d'une idee ou la proposition gardent « Vos idees ».
+   */
+  hideTitle?: boolean
   enabledTabs?: EnabledTabs
   /** Portal access config used to decide whether to show the "Go to portal" CTA. */
   portalAccess?: PortalAccessProps
@@ -78,6 +83,7 @@ export function WidgetShell({
   activeTab,
   onTabChange,
   onBack,
+  hideTitle = false,
   enabledTabs = { feedback: true, changelog: false, help: false, chat: false },
   portalAccess,
   portalOrigin,
@@ -139,11 +145,11 @@ export function WidgetShell({
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
-          {onBack ? (
+          {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-muted hover:bg-muted/70 transition-colors"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted hover:bg-muted/70 transition-colors"
               aria-label={intl.formatMessage({
                 id: 'widget.shell.aria.goBack',
                 defaultMessage: 'Go back',
@@ -151,27 +157,20 @@ export function WidgetShell({
             >
               <ArrowLeftIcon className="w-5 h-5 text-foreground" />
             </button>
-          ) : (
-            activeTab !== 'home' && (
-              <h2
-                className="widget-shell-titre truncate pb-[3px] text-[28px] font-normal leading-none text-foreground"
-                style={{ fontFamily: "'Glass Antiqua', Georgia, serif" }}
-              >
-                {activeTab === 'feedback' ? (
-                  <FormattedMessage
-                    id="widget.shell.heading.feedback"
-                    defaultMessage="Your ideas"
-                  />
-                ) : activeTab === 'help' ? (
-                  <FormattedMessage id="widget.shell.heading.help" defaultMessage="Support" />
-                ) : (
-                  <FormattedMessage
-                    id="widget.shell.heading.changelog"
-                    defaultMessage="What's new"
-                  />
-                )}
-              </h2>
-            )
+          )}
+          {activeTab !== 'home' && !hideTitle && (
+            <h2
+              className="widget-shell-titre truncate pb-[3px] text-[28px] font-normal leading-none text-foreground"
+              style={{ fontFamily: "'Glass Antiqua', Georgia, serif" }}
+            >
+              {activeTab === 'feedback' ? (
+                <FormattedMessage id="widget.shell.heading.feedback" defaultMessage="Your ideas" />
+              ) : activeTab === 'help' ? (
+                <FormattedMessage id="widget.shell.heading.help" defaultMessage="Support" />
+              ) : (
+                <FormattedMessage id="widget.shell.heading.changelog" defaultMessage="What's new" />
+              )}
+            </h2>
           )}
         </div>
 

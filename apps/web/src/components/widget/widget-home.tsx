@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { useIntl } from 'react-intl'
-import { PencilIcon } from 'lucide-react'
+import { FormattedMessage } from 'react-intl'
+import { LightbulbIcon } from 'lucide-react'
 import type { WidgetHomeProps } from './widget-home-animated'
 
 // Defer framer-motion (~360KB minified) to a client-only chunk. The widget
@@ -11,30 +11,14 @@ const WidgetHomeAnimated = lazy(() =>
 )
 
 function WidgetHomeFallback() {
-  const intl = useIntl()
+  // Le temps que l'ecran arrive : la place du bouton « Proposer une idee », rien d'autre.
   return (
-    <form className="flex flex-col h-full">
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-        <div className="w-full px-3 pt-2 pb-3">
-          <div className="rounded-lg border border-border bg-card overflow-hidden">
-            <div className="flex items-center gap-2.5 px-3 py-2.5">
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <PencilIcon className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <input
-                type="text"
-                readOnly
-                placeholder={intl.formatMessage({
-                  id: 'widget.home.input.placeholder',
-                  defaultMessage: "What's your idea?",
-                })}
-                className="flex-1 bg-transparent border-0 outline-none text-foreground placeholder:text-muted-foreground/50"
-              />
-            </div>
-          </div>
-        </div>
+    <div className="px-4 py-4">
+      <div className="flex h-11 items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold uppercase tracking-[0.08em] text-primary-foreground opacity-60">
+        <LightbulbIcon className="size-4" />
+        <FormattedMessage id="widget.home.propose" defaultMessage="Propose an idea" />
       </div>
-    </form>
+    </div>
   )
 }
 

@@ -208,6 +208,8 @@ function WidgetPage() {
     resumeConversationId ? (resumeConversationId as ConversationId) : null
   )
 
+  // L'ecran « Proposer une idee » est ouvert ? Tenu ici : la fleche de retour de la coque le ferme.
+  const [composing, setComposing] = useState(false)
   const [successPost, setSuccessPost] = useState<SuccessPost | null>(null)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [selectedChangelogId, setSelectedChangelogId] = useState<string | null>(null)
@@ -318,6 +320,7 @@ function WidgetPage() {
         setView('overview')
       } else if (tab === 'feedback') {
         setSelectedPostId(null)
+        setComposing(false)
         setView('feedback')
       } else if (tab === 'changelog') {
         setSelectedChangelogId(null)
@@ -355,15 +358,18 @@ function WidgetPage() {
     setView('help-detail')
   }, [])
 
-  // Root views have no back arrow. 'messages' is the chat-only support root.
+  // Root views have no back arrow. 'messages' is the chat-only support root. The idea form is a screen
+  // of its own over the feedback root: its back arrow only closes it (the draft is kept).
   const shellOnBack =
-    view !== 'overview' &&
-    view !== 'feedback' &&
-    view !== 'changelog' &&
-    view !== 'help' &&
-    view !== 'messages'
-      ? handleBack
-      : undefined
+    view === 'feedback' && composing
+      ? () => setComposing(false)
+      : view !== 'overview' &&
+          view !== 'feedback' &&
+          view !== 'changelog' &&
+          view !== 'help' &&
+          view !== 'messages'
+        ? handleBack
+        : undefined
 
   return (
     <WidgetShell
@@ -371,6 +377,7 @@ function WidgetPage() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       onBack={shellOnBack}
+      hideTitle={view === 'chat'}
       enabledTabs={tabs}
       portalAccess={portalAccess}
       portalOrigin={portalOrigin}
@@ -452,6 +459,8 @@ function WidgetPage() {
           boards={boards}
           boardPermissions={livePermissions}
           defaultBoard={defaultBoard}
+          composing={composing}
+          onComposingChange={setComposing}
           onPostSelect={handlePostSelect}
           onPostCreated={handlePostCreated}
         />
