@@ -14,4 +14,12 @@ describe('widget styles', () => {
     expect(mobile).toContain('height:100vh;height:100dvh;')
     expect(mobile.indexOf('height:100vh')).toBeLessThan(mobile.indexOf('height:100dvh'))
   })
+
+  // Seb 2026-11-25 : pas de filet autour de la fenetre, seulement l'ombre.
+  it("le panneau n'a aucun filet, seulement une ombre", () => {
+    ensureStyles('right')
+    const css = document.getElementById('quackback-widget-styles')?.textContent ?? ''
+    expect(css).toContain('border:0;box-shadow:0 24px 60px')
+    expect(css).not.toContain('border:1px solid')
+  })
 })

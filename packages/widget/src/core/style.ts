@@ -7,7 +7,7 @@ export function ensureStyles(side: 'left' | 'right'): void {
   el.textContent = [
     '.quackback-panel{position:fixed;z-index:2147483647;overflow:hidden;pointer-events:none;',
     `bottom:88px;${side}:24px;width:400px;height:min(600px,calc(100vh - 108px));`,
-    'border-radius:12px;border:1px solid rgba(31,29,24,0.22);box-shadow:0 24px 60px -12px rgba(31,29,24,0.38),0 2px 6px rgba(31,29,24,0.08);',
+    'border-radius:12px;border:0;box-shadow:0 24px 60px -12px rgba(31,29,24,0.38),0 2px 6px rgba(31,29,24,0.08);',
     `opacity:0;transform:scale(0);transform-origin:bottom ${side};`,
     'transition:opacity 280ms cubic-bezier(0.34,1.56,0.64,1),transform 280ms cubic-bezier(0.34,1.56,0.64,1)}',
     '.quackback-panel.quackback-open{opacity:1;transform:scale(1);pointer-events:auto}',
