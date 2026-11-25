@@ -108,6 +108,7 @@
   "widget.emailCapture.error": "Algo salió mal. Inténtelo de nuevo.",
   "widget.voteButton.ariaVote": "Votar ({count, plural, one {# voto} other {# votos}})",
   "widget.voteButton.ariaRemoveVote": "Quitar voto ({count, plural, one {# voto} other {# votos}})",
+  "widget.voteButton.label": "Votar",
   "portal.header.nav.feedback": "Feedback",
   "portal.header.nav.roadmap": "Roadmap",
   "portal.header.nav.changelog": "Novedades",

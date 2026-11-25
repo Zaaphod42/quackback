@@ -88,12 +88,18 @@ export function WidgetVoteButton({
       onClick={handleClick}
       disabled={isPending}
       className={cn(
-        'relative flex items-center justify-center rounded-[10px]',
-        compact ? 'flex-row gap-1 py-1.5 px-2.5 text-xs' : 'flex-col w-11 py-1.5 gap-0.5',
+        'relative flex items-center justify-center',
+        compact
+          ? 'h-9 w-full flex-row gap-2 rounded-full px-4 text-[13px] border border-border'
+          : 'rounded-[10px] flex-col w-11 py-1.5 gap-0.5',
         'group transition-colors duration-200',
         !noAccessReason && 'cursor-pointer',
         // Le bloc de l'application : gris clair, et NOIR une fois vote (ce qui est retenu est a l'encre).
-        hasVoted ? 'bg-foreground text-background' : 'bg-muted text-foreground',
+        hasVoted
+          ? 'bg-foreground text-background'
+          : compact
+            ? 'bg-card text-foreground'
+            : 'bg-muted text-foreground',
         // Hover affordances only when the button is actionable (not denied).
         !hasVoted && !noAccessReason && 'hover:bg-muted',
         isPending && 'opacity-70 cursor-wait',
@@ -102,7 +108,7 @@ export function WidgetVoteButton({
     >
       <ChevronUpIcon
         className={cn(
-          compact ? 'h-3.5 w-3.5' : 'h-4 w-4',
+          'h-4 w-4',
           'transition-transform duration-200',
           hasVoted && 'fill-background',
           !isPending && !noAccessReason && 'group-hover:-translate-y-0.5'
@@ -111,10 +117,16 @@ export function WidgetVoteButton({
       <span
         className={cn(
           'font-semibold tabular-nums',
-          compact ? 'text-xs' : 'text-sm',
+          compact ? 'text-[13px]' : 'text-sm',
           hasVoted ? 'text-background' : 'text-foreground'
         )}
       >
+        {compact && (
+          <>
+            {intl.formatMessage({ id: 'widget.voteButton.label', defaultMessage: 'Vote' })}
+            {' · '}
+          </>
+        )}
         {voteCount}
       </span>
     </button>

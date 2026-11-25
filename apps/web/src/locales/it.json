@@ -108,6 +108,7 @@
   "widget.emailCapture.error": "Si è verificato un errore. Riprovare.",
   "widget.voteButton.ariaVote": "Vota ({count, plural, one {# voto} other {# voti}})",
   "widget.voteButton.ariaRemoveVote": "Rimuovi il voto ({count, plural, one {# voto} other {# voti}})",
+  "widget.voteButton.label": "Vota",
   "portal.header.nav.feedback": "Feedback",
   "portal.header.nav.roadmap": "Roadmap",
   "portal.header.nav.changelog": "Novità",

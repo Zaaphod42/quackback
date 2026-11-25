@@ -170,18 +170,39 @@ export function WidgetPostDetail({ postId, statuses }: WidgetPostDetailProps) {
     )
   }
 
-  // LA SAISIE D'UN COMMENTAIRE RESTE EN BAS (Seb 2026-11-24) : la liste defile au-dessus, le champ ne bouge pas.
-  const commentDock =
-    !post.isCommentsLocked && !commentNoAccess && !hmacRequired ? (
-      <div className="shrink-0 border-t border-border bg-card px-3 py-3">
+  // LE VOTE ET LA SAISIE RESTENT EN BAS (Seb 2026-11-25) : une idee longue pousse tout ce qui suit le texte hors de
+  // l'ecran, donc le bouton Voter est epingle avec le champ de commentaire (qui, lui, restait deja en bas depuis
+  // le 2026-11-24), jamais dans le texte qui defile.
+  const commentDock = (
+    <div className="shrink-0 space-y-2 border-t border-border bg-card px-3 py-3">
+      <WidgetVoteButton
+        compact
+        postId={postId as PostId}
+        voteCount={post.voteCount}
+        onBeforeVote={
+          canVote
+            ? async () => {
+                let success = false
+                await ensureSessionThen(() => {
+                  success = true
+                })
+                return success
+              }
+            : undefined
+        }
+        noAccessReason={voteNoAccessReason}
+        onAuthRequired={!canVote ? handleViewOnPortal : undefined}
+      />
+      {!post.isCommentsLocked && !commentNoAccess && !hmacRequired && (
         <WidgetCommentForm
           isIdentified={isIdentified}
           user={user}
           onSubmit={submitComment}
           identifyWithEmail={identifyWithEmail}
         />
-      </div>
-    ) : null
+      )}
+    </div>
+  )
 
   return (
     <div className="flex h-full flex-col">
@@ -189,25 +210,6 @@ export function WidgetPostDetail({ postId, statuses }: WidgetPostDetailProps) {
         <div className="px-3 pt-3 pb-4 space-y-3">
           {/* Header: mirrors widget listing layout (vote left, status/title right) */}
           <div className="flex items-start gap-3">
-            <div className="shrink-0 mt-0.5">
-              <WidgetVoteButton
-                postId={postId as PostId}
-                voteCount={post.voteCount}
-                onBeforeVote={
-                  canVote
-                    ? async () => {
-                        let success = false
-                        await ensureSessionThen(() => {
-                          success = true
-                        })
-                        return success
-                      }
-                    : undefined
-                }
-                noAccessReason={voteNoAccessReason}
-                onAuthRequired={!canVote ? handleViewOnPortal : undefined}
-              />
-            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 {status && (

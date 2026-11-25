@@ -108,6 +108,7 @@
   "widget.emailCapture.error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
   "widget.voteButton.ariaVote": "Abstimmen ({count, plural, one {# Stimme} other {# Stimmen}})",
   "widget.voteButton.ariaRemoveVote": "Stimme zurücknehmen ({count, plural, one {# Stimme} other {# Stimmen}})",
+  "widget.voteButton.label": "Abstimmen",
   "portal.header.nav.feedback": "Feedback",
   "portal.header.nav.roadmap": "Roadmap",
   "portal.header.nav.changelog": "Neuigkeiten",

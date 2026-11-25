@@ -140,8 +140,7 @@ export function WidgetShell({
           prend la place du titre : le contenu porte son propre titre. */}
       <div
         className={cn(
-          'relative flex shrink-0 items-center justify-between gap-2 border-b border-border bg-card ps-5 pe-4',
-          mobile ? 'h-[60px]' : 'h-14'
+          'widget-shell-entete relative flex h-[52px] shrink-0 items-center justify-between gap-2 border-b border-border bg-card ps-5 pe-4'
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
@@ -160,7 +159,7 @@ export function WidgetShell({
           )}
           {activeTab !== 'home' && !hideTitle && (
             <h2
-              className="widget-shell-titre truncate pb-[3px] text-[28px] font-normal leading-none text-foreground"
+              className="widget-shell-titre truncate pb-[3px] text-[22px] font-normal leading-none text-foreground"
               style={{ fontFamily: "'Glass Antiqua', Georgia, serif" }}
             >
               {activeTab === 'feedback' ? (
@@ -217,7 +216,7 @@ export function WidgetShell({
 
       {/* Bottom tab bar + footer */}
       <div
-        className="border-t border-border shrink-0"
+        className="widget-shell-onglets border-t border-border shrink-0"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {showTabBar && (

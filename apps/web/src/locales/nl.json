@@ -108,6 +108,7 @@
   "widget.emailCapture.error": "Er is iets misgegaan. Probeer het opnieuw.",
   "widget.voteButton.ariaVote": "Stem ({count, plural, one {# stem} other {# stemmen}})",
   "widget.voteButton.ariaRemoveVote": "Stem intrekken ({count, plural, one {# stem} other {# stemmen}})",
+  "widget.voteButton.label": "Stemmen",
   "portal.header.nav.feedback": "Feedback",
   "portal.header.nav.roadmap": "Roadmap",
   "portal.header.nav.changelog": "Updates",

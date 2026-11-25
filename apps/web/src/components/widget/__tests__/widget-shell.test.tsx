@@ -90,14 +90,20 @@ describe('WidgetShell', () => {
     expect(onglets[1].className).not.toContain('before:h-[3px]')
   })
 
-  it("l'avatar n'existe que sur telephone ; l'en-tete passe de 56 a 60 px", () => {
+  it("l'avatar n'existe que sur telephone ; l'en-tete garde 52 px partout", () => {
     const { container } = monter()
     signalMobile(false)
     expect(container.querySelector('[aria-label="User menu"]')).toBeNull()
-    expect(container.querySelector('.h-14')).not.toBeNull()
+    expect(container.querySelector('.widget-shell-entete.h-\\[52px\\]')).not.toBeNull()
     signalMobile(true)
     expect(container.querySelector('[aria-label="User menu"]')).not.toBeNull()
-    expect(container.querySelector('.h-\\[60px\\]')).not.toBeNull()
+    expect(container.querySelector('.widget-shell-entete.h-\\[52px\\]')).not.toBeNull()
+  })
+
+  it("l'en-tete et la barre d'onglets portent leur accroche pour la feuille du portail", () => {
+    const { container } = monter()
+    expect(container.querySelector('.widget-shell-entete')).not.toBeNull()
+    expect(container.querySelector('.widget-shell-onglets')).not.toBeNull()
   })
 
   it('dans une conversation : la fleche de retour seule, aucun titre', () => {
