@@ -133,7 +133,11 @@ function WidgetLayout() {
           `,
         }}
       />
-      <Outlet />
+      {/* `quackback-widget` : l'accroche du theme Aide du widget (feuille d'habillage du portail,
+          docs/support/quackback-custom.css de Diafane, section 7) : fond vert tres clair, boutons verts. */}
+      <div className="quackback-widget h-full">
+        <Outlet />
+      </div>
     </WidgetAuthProvider>
   )
 }

@@ -213,7 +213,7 @@ export function WidgetShell({
         </p>
       )}
 
-      <div className="flex-1 overflow-hidden min-h-0">{children}</div>
+      <div className="flex-1 overflow-hidden min-h-0 bg-background">{children}</div>
 
       {/* Bottom tab bar + footer */}
       <div
