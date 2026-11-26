@@ -13,6 +13,7 @@ interface ChatMessageEmailProps {
   reason: string
   unsubscribeUrl?: string
   logoUrl?: string
+  locale?: string
 }
 
 export function ChatMessageEmail({
@@ -26,6 +27,7 @@ export function ChatMessageEmail({
   reason,
   unsubscribeUrl,
   logoUrl,
+  locale,
 }: ChatMessageEmailProps) {
   return (
     <EmailLayout preview={heading} logoUrl={logoUrl} logoAlt={organizationName}>
@@ -68,7 +70,11 @@ export function ChatMessageEmail({
         </Button>
       </Section>
 
-      <NotificationFooter reason={reason} unsubscribeUrl={unsubscribeUrl ?? ctaUrl} />
+      <NotificationFooter
+        reason={reason}
+        unsubscribeUrl={unsubscribeUrl ?? ctaUrl}
+        locale={locale}
+      />
     </EmailLayout>
   )
 }

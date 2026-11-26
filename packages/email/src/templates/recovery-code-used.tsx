@@ -1,6 +1,7 @@
 import { Heading, Section, Text } from '@react-email/components'
 import { EmailLayout, TransactionalFooter } from './email-layout'
 import { typography } from './shared-styles'
+import { t } from '../i18n'
 
 interface RecoveryCodeUsedEmailProps {
   workspaceName?: string
@@ -8,6 +9,7 @@ interface RecoveryCodeUsedEmailProps {
   userAgent?: string | null
   occurredAt: string
   logoUrl?: string
+  locale?: string
 }
 
 /**
@@ -22,43 +24,46 @@ export function RecoveryCodeUsedEmail({
   userAgent,
   occurredAt,
   logoUrl,
+  locale,
 }: RecoveryCodeUsedEmailProps) {
-  const workspaceLabel = workspaceName ? ` for ${workspaceName}` : ''
   return (
-    <EmailLayout preview={`A recovery code was used to sign in${workspaceLabel}`} logoUrl={logoUrl}>
-      <Heading style={{ ...typography.h1, textAlign: 'center' }}>A recovery code was used</Heading>
+    <EmailLayout
+      preview={
+        workspaceName
+          ? t(locale, 'recovery.previewWorkspace', { workspace: workspaceName })
+          : t(locale, 'recovery.preview')
+      }
+      logoUrl={logoUrl}
+    >
+      <Heading style={{ ...typography.h1, textAlign: 'center' }}>
+        {t(locale, 'recovery.heading')}
+      </Heading>
       <Text style={{ ...typography.text, textAlign: 'center' }}>
-        Someone signed in to your account{workspaceLabel} using one of your saved recovery codes.
+        {workspaceName
+          ? t(locale, 'recovery.bodyWorkspace', { workspace: workspaceName })
+          : t(locale, 'recovery.body')}
       </Text>
 
       <Section style={{ marginTop: '24px', marginBottom: '24px' }}>
         <Text style={typography.textSmall}>
-          <strong>When:</strong> {occurredAt}
+          <strong>{t(locale, 'recovery.when')}</strong> {occurredAt}
         </Text>
         {ipAddress ? (
           <Text style={typography.textSmall}>
-            <strong>IP address:</strong> {ipAddress}
+            <strong>{t(locale, 'recovery.ip')}</strong> {ipAddress}
           </Text>
         ) : null}
         {userAgent ? (
           <Text style={typography.textSmall}>
-            <strong>Device:</strong> {userAgent}
+            <strong>{t(locale, 'recovery.device')}</strong> {userAgent}
           </Text>
         ) : null}
       </Section>
 
-      <Text style={typography.text}>
-        If this was you, no action is needed. The code is now spent and can&apos;t be reused.
-      </Text>
-      <Text style={typography.text}>
-        If this wasn&apos;t you, sign in and rotate your recovery codes immediately. The person who
-        used the code now has an active session — revoke it from your security settings.
-      </Text>
+      <Text style={typography.text}>{t(locale, 'recovery.ifYou')}</Text>
+      <Text style={typography.text}>{t(locale, 'recovery.ifNot')}</Text>
 
-      <TransactionalFooter>
-        You&apos;re receiving this because a recovery code on your account was just used. These
-        alerts are required and can&apos;t be disabled.
-      </TransactionalFooter>
+      <TransactionalFooter>{t(locale, 'recovery.footer')}</TransactionalFooter>
     </EmailLayout>
   )
 }

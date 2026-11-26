@@ -10,6 +10,7 @@ import {
   Link,
 } from '@react-email/components'
 import { layout, branding, typography, utils, colors, DEFAULT_LOGO_URL } from './shared-styles'
+import { t } from '../i18n'
 
 interface EmailLayoutProps {
   preview: string
@@ -71,18 +72,20 @@ export function TransactionalFooter({ children }: { children: React.ReactNode })
 export function NotificationFooter({
   reason,
   unsubscribeUrl,
-  unsubscribeLabel = 'Unsubscribe from this post',
+  unsubscribeLabel,
+  locale,
 }: {
   reason: string
   unsubscribeUrl: string
   unsubscribeLabel?: string
+  locale?: string
 }) {
   return (
     <Text style={typography.footer}>
       {reason}
       <br />
       <Link href={unsubscribeUrl} style={{ ...utils.link, fontSize: '13px' }}>
-        {unsubscribeLabel}
+        {unsubscribeLabel ?? t(locale, 'footer.unsubscribePost')}
       </Link>
     </Text>
   )

@@ -1,11 +1,13 @@
 import { Button, Heading, Hr, Section, Text } from '@react-email/components'
 import { EmailLayout, TransactionalFooter } from './email-layout'
 import { typography, button, utils, colors } from './shared-styles'
+import { t } from '../i18n'
 
 interface MagicLinkEmailProps {
   signInUrl: string
   code: string
   logoUrl?: string
+  locale?: string
 }
 
 /**
@@ -17,24 +19,26 @@ interface MagicLinkEmailProps {
  * verification record on the server, so the user can pick whichever is
  * convenient.
  */
-export function MagicLinkEmail({ signInUrl, code, logoUrl }: MagicLinkEmailProps) {
+export function MagicLinkEmail({ signInUrl, code, logoUrl, locale }: MagicLinkEmailProps) {
   return (
-    <EmailLayout preview="Your sign-in link" logoUrl={logoUrl}>
-      <Heading style={{ ...typography.h1, textAlign: 'center' }}>Sign in to Diafane</Heading>
+    <EmailLayout preview={t(locale, 'magicLink.preview')} logoUrl={logoUrl}>
+      <Heading style={{ ...typography.h1, textAlign: 'center' }}>
+        {t(locale, 'magicLink.heading')}
+      </Heading>
       <Text style={{ ...typography.text, textAlign: 'center' }}>
-        Click the button below to finish signing in.
+        {t(locale, 'magicLink.intro')}
       </Text>
 
       <Section style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
         <Button style={button.primary} href={signInUrl}>
-          Sign in
+          {t(locale, 'magicLink.button')}
         </Button>
       </Section>
 
       <Hr style={{ margin: '32px 0', borderColor: colors.border }} />
 
       <Text style={{ ...typography.text, textAlign: 'center' }}>
-        Or enter this code on the sign-in screen:
+        {t(locale, 'magicLink.orCode')}
       </Text>
 
       <Section style={utils.codeBox}>
@@ -42,12 +46,10 @@ export function MagicLinkEmail({ signInUrl, code, logoUrl }: MagicLinkEmailProps
       </Section>
 
       <Text style={{ ...typography.textSmall, textAlign: 'center' }}>
-        The link and code expire in 10 minutes.
+        {t(locale, 'magicLink.expires')}
       </Text>
 
-      <TransactionalFooter>
-        If you didn&apos;t request this, you can safely ignore this email.
-      </TransactionalFooter>
+      <TransactionalFooter>{t(locale, 'magicLink.ignore')}</TransactionalFooter>
     </EmailLayout>
   )
 }

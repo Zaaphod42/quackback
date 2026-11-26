@@ -1,6 +1,7 @@
 import { Button, Heading, Link, Section, Text } from '@react-email/components'
 import { EmailLayout, TransactionalFooter } from './email-layout'
 import { typography, button, utils } from './shared-styles'
+import { t, rich } from '../i18n'
 
 interface InvitationEmailProps {
   invitedByName: string
@@ -8,6 +9,7 @@ interface InvitationEmailProps {
   organizationName: string
   inviteLink: string
   logoUrl?: string
+  locale?: string
 }
 
 export function InvitationEmail({
@@ -16,41 +18,43 @@ export function InvitationEmail({
   organizationName,
   inviteLink,
   logoUrl,
+  locale,
 }: InvitationEmailProps) {
   return (
     <EmailLayout
-      preview={`Join ${organizationName}`}
+      preview={t(locale, 'invitation.preview', { workspace: organizationName })}
       logoUrl={logoUrl}
       logoAlt={organizationName}
     >
       {/* Content */}
       <Heading style={typography.h1}>
-        {inviteeName ? `Hi ${inviteeName}, you're invited!` : "You're invited!"}
+        {inviteeName
+          ? t(locale, 'invitation.headingNamed', { name: inviteeName })
+          : t(locale, 'invitation.heading')}
       </Heading>
       <Text style={typography.text}>
-        <strong>{invitedByName}</strong> has invited you to join{' '}
-        <strong>{organizationName}</strong>.
+        {rich(
+          t(locale, 'invitation.body', { invitedBy: invitedByName, workspace: organizationName })
+        )}
       </Text>
 
       {/* CTA Button */}
       <Section style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
         <Button style={button.primary} href={inviteLink}>
-          Accept Invitation
+          {t(locale, 'invitation.button')}
         </Button>
       </Section>
 
       {/* Fallback Link */}
       <Text style={typography.textSmall}>
-        Or copy and paste this link into your browser:{' '}
+        {t(locale, 'link.copyPaste')}{' '}
         <Link href={inviteLink} style={utils.link}>
           {inviteLink}
         </Link>
       </Text>
 
       {/* Footer */}
-      <TransactionalFooter>
-        If you weren&apos;t expecting this invitation, you can ignore this email.
-      </TransactionalFooter>
+      <TransactionalFooter>{t(locale, 'invitation.ignore')}</TransactionalFooter>
     </EmailLayout>
   )
 }

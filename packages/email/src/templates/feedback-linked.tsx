@@ -1,6 +1,7 @@
 import { Button, Heading, Section, Text } from '@react-email/components'
 import { EmailLayout, NotificationFooter } from './email-layout'
 import { typography, button, colors } from './shared-styles'
+import { t } from '../i18n'
 
 interface FeedbackLinkedEmailProps {
   recipientName?: string
@@ -10,6 +11,7 @@ interface FeedbackLinkedEmailProps {
   unsubscribeUrl: string
   attributedByName?: string
   logoUrl?: string
+  locale?: string
 }
 
 export function FeedbackLinkedEmail({
@@ -20,23 +22,25 @@ export function FeedbackLinkedEmail({
   unsubscribeUrl,
   attributedByName,
   logoUrl,
+  locale,
 }: FeedbackLinkedEmailProps) {
-  const greeting = recipientName ? `Thanks ${recipientName}!` : 'Thanks!'
+  const greeting = recipientName
+    ? t(locale, 'linked.thanksNamed', { name: recipientName })
+    : t(locale, 'linked.thanks')
   const attribution = attributedByName
-    ? ` ${attributedByName} from the ${workspaceName} team has linked your feedback to a post.`
-    : ` Your feedback has been linked to a post on ${workspaceName}.`
+    ? t(locale, 'linked.attributedBy', { by: attributedByName, workspace: workspaceName })
+    : t(locale, 'linked.attributed', { workspace: workspaceName })
 
   return (
     <EmailLayout
-      preview={`Your feedback has been linked to "${postTitle}"`}
+      preview={t(locale, 'linked.preview', { title: postTitle })}
       logoUrl={logoUrl}
       logoAlt={workspaceName}
     >
       {/* Content */}
-      <Heading style={typography.h1}>Your feedback is being tracked!</Heading>
+      <Heading style={typography.h1}>{t(locale, 'linked.heading')}</Heading>
       <Text style={typography.text}>
-        {greeting}
-        {attribution} You'll receive updates when the status changes or new comments are posted.
+        {greeting} {attribution} {t(locale, 'linked.updates')}
       </Text>
 
       {/* Post Title */}
@@ -56,14 +60,15 @@ export function FeedbackLinkedEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
         <Button style={button.primary} href={postUrl}>
-          View Feedback
+          {t(locale, 'cta.viewFeedback')}
         </Button>
       </Section>
 
       {/* Footer */}
       <NotificationFooter
-        reason="You received this email because your feedback was attributed to this post."
+        reason={t(locale, 'linked.reason')}
         unsubscribeUrl={unsubscribeUrl}
+        locale={locale}
       />
     </EmailLayout>
   )

@@ -1,12 +1,14 @@
 import { Button, Heading, Link, Section, Text } from '@react-email/components'
 import { EmailLayout, TransactionalFooter } from './email-layout'
 import { typography, button, utils, colors } from './shared-styles'
+import { t, rich } from '../i18n'
 
 interface PortalInviteEmailProps {
   workspaceName: string
   inviteLink: string
   logoUrl?: string
   personalMessage?: string
+  locale?: string
 }
 
 export function PortalInviteEmail({
@@ -14,18 +16,18 @@ export function PortalInviteEmail({
   inviteLink,
   logoUrl,
   personalMessage,
+  locale,
 }: PortalInviteEmailProps) {
   return (
     <EmailLayout
-      preview={`You've been invited to access the ${workspaceName} portal`}
+      preview={t(locale, 'portalInvite.preview', { workspace: workspaceName })}
       logoUrl={logoUrl}
       logoAlt={workspaceName}
     >
       {/* Content */}
-      <Heading style={typography.h1}>You&apos;ve been invited!</Heading>
+      <Heading style={typography.h1}>{t(locale, 'portalInvite.heading')}</Heading>
       <Text style={typography.text}>
-        You&apos;ve been invited to access the <strong>{workspaceName}</strong> portal. Click below
-        to accept and sign in.
+        {rich(t(locale, 'portalInvite.body', { workspace: workspaceName }))}
       </Text>
 
       {personalMessage && (
@@ -48,22 +50,20 @@ export function PortalInviteEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
         <Button style={button.primary} href={inviteLink}>
-          Accept invitation
+          {t(locale, 'portalInvite.button')}
         </Button>
       </Section>
 
       {/* Fallback Link */}
       <Text style={typography.textSmall}>
-        Or copy and paste this link into your browser:{' '}
+        {t(locale, 'link.copyPaste')}{' '}
         <Link href={inviteLink} style={utils.link}>
           {inviteLink}
         </Link>
       </Text>
 
       {/* Footer */}
-      <TransactionalFooter>
-        If you weren&apos;t expecting this invitation, you can ignore this email.
-      </TransactionalFooter>
+      <TransactionalFooter>{t(locale, 'portalInvite.ignore')}</TransactionalFooter>
     </EmailLayout>
   )
 }

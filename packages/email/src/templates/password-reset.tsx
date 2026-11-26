@@ -1,40 +1,42 @@
 import { Button, Heading, Link, Section, Text } from '@react-email/components'
 import { EmailLayout, TransactionalFooter } from './email-layout'
 import { typography, button, utils } from './shared-styles'
+import { t } from '../i18n'
 
 interface PasswordResetEmailProps {
   resetLink: string
   logoUrl?: string
+  locale?: string
 }
 
-export function PasswordResetEmail({ resetLink, logoUrl }: PasswordResetEmailProps) {
+export function PasswordResetEmail({ resetLink, logoUrl, locale }: PasswordResetEmailProps) {
   return (
-    <EmailLayout preview="Reset your Diafane feedback password" logoUrl={logoUrl}>
+    <EmailLayout preview={t(locale, 'passwordReset.preview')} logoUrl={logoUrl}>
       {/* Content */}
-      <Heading style={{ ...typography.h1, textAlign: 'center' }}>Reset your password</Heading>
+      <Heading style={{ ...typography.h1, textAlign: 'center' }}>
+        {t(locale, 'passwordReset.heading')}
+      </Heading>
       <Text style={{ ...typography.text, textAlign: 'center' }}>
-        Click the button below to set a new password. This link expires in 24 hours.
+        {t(locale, 'passwordReset.body')}
       </Text>
 
       {/* CTA Button */}
       <Section style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
         <Button style={button.primary} href={resetLink}>
-          Reset Password
+          {t(locale, 'passwordReset.button')}
         </Button>
       </Section>
 
       {/* Fallback Link */}
       <Text style={typography.textSmall}>
-        Or copy and paste this link into your browser:{' '}
+        {t(locale, 'link.copyPaste')}{' '}
         <Link href={resetLink} style={utils.link}>
           {resetLink}
         </Link>
       </Text>
 
       {/* Footer */}
-      <TransactionalFooter>
-        If you didn&apos;t request a password reset, you can safely ignore this email.
-      </TransactionalFooter>
+      <TransactionalFooter>{t(locale, 'passwordReset.ignore')}</TransactionalFooter>
     </EmailLayout>
   )
 }

@@ -1,42 +1,48 @@
 import { Button, Column, Heading, Row, Section, Text } from '@react-email/components'
 import { EmailLayout, TransactionalFooter } from './email-layout'
 import { typography, button, colors } from './shared-styles'
+import { t, rich } from '../i18n'
 
 interface WelcomeEmailProps {
   name: string
   workspaceName: string
   dashboardUrl: string
   logoUrl?: string
+  locale?: string
 }
 
-export function WelcomeEmail({ name, workspaceName, dashboardUrl, logoUrl }: WelcomeEmailProps) {
+export function WelcomeEmail({
+  name,
+  workspaceName,
+  dashboardUrl,
+  logoUrl,
+  locale,
+}: WelcomeEmailProps) {
   return (
     <EmailLayout
-      preview={`Welcome to ${workspaceName}`}
+      preview={t(locale, 'welcome.preview', { workspace: workspaceName })}
       logoUrl={logoUrl}
       logoAlt={workspaceName}
     >
       {/* Content */}
-      <Heading style={typography.h1}>Welcome to {workspaceName}!</Heading>
+      <Heading style={typography.h1}>
+        {t(locale, 'welcome.heading', { workspace: workspaceName })}
+      </Heading>
       <Text style={typography.text}>
-        Hi {name}, your workspace <strong>{workspaceName}</strong> is ready. Start collecting and
-        managing customer feedback today.
+        {rich(t(locale, 'welcome.body', { name, workspace: workspaceName }))}
       </Text>
 
       {/* Features List - using Row/Column instead of spans for email compatibility */}
       <Section style={{ marginBottom: '24px' }}>
-        {[
-          'Create feedback boards',
-          'Invite your team',
-          'Share your public roadmap',
-          'Connect GitHub, Slack & Discord',
-        ].map((feature) => (
+        {(
+          ['welcome.feature1', 'welcome.feature2', 'welcome.feature3', 'welcome.feature4'] as const
+        ).map((feature) => (
           <Row key={feature} style={{ marginBottom: '4px' }}>
             <Column style={{ width: '28px', verticalAlign: 'top' }}>
               <Text style={checkIcon}>&#10003;</Text>
             </Column>
             <Column>
-              <Text style={featureText}>{feature}</Text>
+              <Text style={featureText}>{t(locale, feature)}</Text>
             </Column>
           </Row>
         ))}
@@ -45,15 +51,15 @@ export function WelcomeEmail({ name, workspaceName, dashboardUrl, logoUrl }: Wel
       {/* CTA Button */}
       <Section style={{ textAlign: 'center', marginBottom: '32px' }}>
         <Button style={button.primary} href={dashboardUrl}>
-          Go to Dashboard
+          {t(locale, 'welcome.button')}
         </Button>
       </Section>
 
       {/* Footer */}
       <TransactionalFooter>
-        Happy collecting!
+        {t(locale, 'welcome.footer')}
         <br />
-        The {workspaceName} team
+        {t(locale, 'welcome.team', { workspace: workspaceName })}
       </TransactionalFooter>
     </EmailLayout>
   )

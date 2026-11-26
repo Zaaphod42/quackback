@@ -1,6 +1,7 @@
 import { Button, Heading, Section, Text } from '@react-email/components'
 import { EmailLayout, NotificationFooter } from './email-layout'
 import { typography, button, colors } from './shared-styles'
+import { t, statusLabel } from '../i18n'
 
 interface StatusChangeEmailProps {
   postTitle: string
@@ -10,6 +11,7 @@ interface StatusChangeEmailProps {
   organizationName: string
   unsubscribeUrl: string
   logoUrl?: string
+  locale?: string
 }
 
 function getStatusEmoji(status: string): string {
@@ -24,13 +26,6 @@ function getStatusEmoji(status: string): string {
   return map[status.toLowerCase().replace(/\s+/g, '_')] || '\u{1F4CC}'
 }
 
-function capitalizeStatus(status: string): string {
-  return status
-    .split(/[_\s]+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-}
-
 export function StatusChangeEmail({
   postTitle,
   postUrl,
@@ -39,23 +34,24 @@ export function StatusChangeEmail({
   organizationName,
   unsubscribeUrl,
   logoUrl,
+  locale,
 }: StatusChangeEmailProps) {
   const emoji = getStatusEmoji(newStatus)
-  const formattedNewStatus = capitalizeStatus(newStatus)
-  const formattedPreviousStatus = capitalizeStatus(previousStatus)
+  const formattedNewStatus = statusLabel(locale, newStatus)
+  const formattedPreviousStatus = statusLabel(locale, previousStatus)
 
   return (
     <EmailLayout
-      preview={`${emoji} Your feedback is now ${formattedNewStatus}`}
+      preview={`${emoji} ${t(locale, 'statusChange.preview', { status: formattedNewStatus })}`}
       logoUrl={logoUrl}
       logoAlt={organizationName}
     >
       {/* Content */}
       <Heading style={typography.h1}>
-        {emoji} Your feedback is now {formattedNewStatus}!
+        {emoji} {t(locale, 'statusChange.heading', { status: formattedNewStatus })}
       </Heading>
       <Text style={typography.text}>
-        Great news! The status of your feedback has been updated on {organizationName}.
+        {t(locale, 'statusChange.body', { workspace: organizationName })}
       </Text>
 
       {/* Post Title */}
@@ -82,14 +78,15 @@ export function StatusChangeEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
         <Button style={button.primary} href={postUrl}>
-          View Feedback
+          {t(locale, 'cta.viewFeedback')}
         </Button>
       </Section>
 
       {/* Footer */}
       <NotificationFooter
-        reason="You received this email because you submitted or subscribed to this feedback."
+        reason={t(locale, 'footer.reasonFeedback')}
         unsubscribeUrl={unsubscribeUrl}
+        locale={locale}
       />
     </EmailLayout>
   )

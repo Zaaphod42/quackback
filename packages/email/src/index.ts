@@ -13,6 +13,7 @@ import type { Transporter } from 'nodemailer'
 import { Resend } from 'resend'
 import { createLogger } from '@quackback/logger'
 import { isSyntheticAnonEmail } from './anon'
+import { t, statusLabel } from './i18n'
 import { MagicLinkEmail } from './templates/magic-link'
 import { InvitationEmail } from './templates/invitation'
 import { PortalInviteEmail } from './templates/portal-invite'
@@ -210,10 +211,12 @@ interface SendInvitationParams {
   workspaceName: string
   inviteLink: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendInvitationEmail(params: SendInvitationParams): Promise<EmailResult> {
-  const { to, invitedByName, inviteeName, workspaceName, inviteLink, logoUrl } = params
+  const { to, invitedByName, inviteeName, workspaceName, inviteLink, logoUrl, locale } = params
 
   if (getProvider() === 'console') {
     log.debug(
@@ -225,8 +228,9 @@ export async function sendInvitationEmail(params: SendInvitationParams): Promise
 
   return sendEmail({
     to,
-    subject: `You've been invited to join ${workspaceName}`,
+    subject: t(locale, 'invitation.subject', { workspace: workspaceName }),
     react: InvitationEmail({
+      locale,
       invitedByName,
       inviteeName,
       organizationName: workspaceName,
@@ -246,10 +250,12 @@ interface SendPortalInviteParams {
   inviteLink: string
   logoUrl?: string
   personalMessage?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendPortalInviteEmail(params: SendPortalInviteParams): Promise<EmailResult> {
-  const { to, workspaceName, inviteLink, logoUrl, personalMessage } = params
+  const { to, workspaceName, inviteLink, logoUrl, personalMessage, locale } = params
 
   if (getProvider() === 'console') {
     log.debug(
@@ -261,8 +267,8 @@ export async function sendPortalInviteEmail(params: SendPortalInviteParams): Pro
 
   return sendEmail({
     to,
-    subject: `You've been invited to ${workspaceName}`,
-    react: PortalInviteEmail({ workspaceName, inviteLink, logoUrl, personalMessage }),
+    subject: t(locale, 'portalInvite.subject', { workspace: workspaceName }),
+    react: PortalInviteEmail({ workspaceName, inviteLink, logoUrl, personalMessage, locale }),
   })
 }
 
@@ -276,10 +282,12 @@ interface SendWelcomeParams {
   workspaceName: string
   dashboardUrl: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendWelcomeEmail(params: SendWelcomeParams): Promise<EmailResult> {
-  const { to, name, workspaceName, dashboardUrl, logoUrl } = params
+  const { to, name, workspaceName, dashboardUrl, logoUrl, locale } = params
 
   if (getProvider() === 'console') {
     log.debug(
@@ -291,8 +299,8 @@ export async function sendWelcomeEmail(params: SendWelcomeParams): Promise<Email
 
   return sendEmail({
     to,
-    subject: `Welcome to ${workspaceName}!`,
-    react: WelcomeEmail({ name, workspaceName, dashboardUrl, logoUrl }),
+    subject: t(locale, 'welcome.subject', { workspace: workspaceName }),
+    react: WelcomeEmail({ name, workspaceName, dashboardUrl, logoUrl, locale }),
   })
 }
 
@@ -305,10 +313,12 @@ interface SendMagicLinkParams {
   signInUrl: string
   code: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendMagicLinkEmail(params: SendMagicLinkParams): Promise<EmailResult> {
-  const { to, signInUrl, code, logoUrl } = params
+  const { to, signInUrl, code, logoUrl, locale } = params
 
   if (getProvider() === 'console') {
     log.debug(
@@ -321,8 +331,8 @@ export async function sendMagicLinkEmail(params: SendMagicLinkParams): Promise<E
   log.debug('sending sign-in email')
   return sendEmail({
     to,
-    subject: 'Your Diafane sign-in link',
-    react: MagicLinkEmail({ signInUrl, code, logoUrl }),
+    subject: t(locale, 'magicLink.subject'),
+    react: MagicLinkEmail({ signInUrl, code, logoUrl, locale }),
   })
 }
 
@@ -334,12 +344,14 @@ interface SendPasswordResetParams {
   to: string
   resetLink: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendPasswordResetEmail(
   params: SendPasswordResetParams
 ): Promise<EmailResult> {
-  const { to, resetLink, logoUrl } = params
+  const { to, resetLink, logoUrl, locale } = params
 
   if (getProvider() === 'console') {
     log.debug(
@@ -352,8 +364,8 @@ export async function sendPasswordResetEmail(
   log.debug('sending password reset email')
   return sendEmail({
     to,
-    subject: 'Reset your Diafane feedback password',
-    react: PasswordResetEmail({ resetLink, logoUrl }),
+    subject: t(locale, 'passwordReset.subject'),
+    react: PasswordResetEmail({ resetLink, logoUrl, locale }),
   })
 }
 
@@ -368,6 +380,8 @@ interface SendRecoveryCodeUsedParams {
   userAgent?: string | null
   occurredAt: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 /**
@@ -378,7 +392,7 @@ interface SendRecoveryCodeUsedParams {
 export async function sendRecoveryCodeUsedEmail(
   params: SendRecoveryCodeUsedParams
 ): Promise<EmailResult> {
-  const { to, workspaceName, ipAddress, userAgent, occurredAt, logoUrl } = params
+  const { to, workspaceName, ipAddress, userAgent, occurredAt, logoUrl, locale } = params
 
   if (getProvider() === 'console') {
     log.debug(
@@ -391,8 +405,15 @@ export async function sendRecoveryCodeUsedEmail(
   log.debug('sending recovery-code-used alert')
   return sendEmail({
     to,
-    subject: 'A recovery code on your account was just used',
-    react: RecoveryCodeUsedEmail({ workspaceName, ipAddress, userAgent, occurredAt, logoUrl }),
+    subject: t(locale, 'recovery.subject'),
+    react: RecoveryCodeUsedEmail({
+      workspaceName,
+      ipAddress,
+      userAgent,
+      occurredAt,
+      logoUrl,
+      locale,
+    }),
   })
 }
 
@@ -407,13 +428,15 @@ interface SendNewSignInParams {
   ipAddress?: string | null
   userAgent?: string | null
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 /** First-sight new-device sign-in alert. Triggered by
  * `handleNewDeviceNotification` after a successful sign-in lands on
  * an unseen (UA, /24 IP) combination. */
 export async function sendNewSignInEmail(params: SendNewSignInParams): Promise<EmailResult> {
-  const { to, workspaceName, occurredAt, ipAddress, userAgent, logoUrl } = params
+  const { to, workspaceName, occurredAt, ipAddress, userAgent, logoUrl, locale } = params
 
   if (getProvider() === 'console') {
     log.debug(
@@ -426,8 +449,8 @@ export async function sendNewSignInEmail(params: SendNewSignInParams): Promise<E
   log.debug('sending new-sign-in alert')
   return sendEmail({
     to,
-    subject: 'New sign-in to your account',
-    react: NewSignInEmail({ workspaceName, occurredAt, ipAddress, userAgent, logoUrl }),
+    subject: t(locale, 'newSignIn.subject'),
+    react: NewSignInEmail({ workspaceName, occurredAt, ipAddress, userAgent, logoUrl, locale }),
   })
 }
 
@@ -444,6 +467,8 @@ interface SendStatusChangeParams {
   workspaceName: string
   unsubscribeUrl: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendStatusChangeEmail(params: SendStatusChangeParams): Promise<EmailResult> {
@@ -456,6 +481,7 @@ export async function sendStatusChangeEmail(params: SendStatusChangeParams): Pro
     workspaceName,
     unsubscribeUrl,
     logoUrl,
+    locale,
   } = params
 
   if (getProvider() === 'console') {
@@ -466,12 +492,13 @@ export async function sendStatusChangeEmail(params: SendStatusChangeParams): Pro
     return { sent: false }
   }
 
-  const formattedNewStatus = newStatus.replace(/_/g, ' ')
+  const formattedNewStatus = statusLabel(locale, newStatus)
 
   return sendEmail({
     to,
-    subject: `Your feedback is now ${formattedNewStatus}!`,
+    subject: t(locale, 'statusChange.subject', { status: formattedNewStatus }),
     react: StatusChangeEmail({
+      locale,
       postTitle,
       postUrl,
       previousStatus,
@@ -497,6 +524,8 @@ interface SendNewCommentParams {
   workspaceName: string
   unsubscribeUrl: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendNewCommentEmail(params: SendNewCommentParams): Promise<EmailResult> {
@@ -510,6 +539,7 @@ export async function sendNewCommentEmail(params: SendNewCommentParams): Promise
     workspaceName,
     unsubscribeUrl,
     logoUrl,
+    locale,
   } = params
 
   if (getProvider() === 'console') {
@@ -522,8 +552,9 @@ export async function sendNewCommentEmail(params: SendNewCommentParams): Promise
 
   return sendEmail({
     to,
-    subject: `New comment on "${postTitle}"`,
+    subject: t(locale, 'newComment.subject', { title: postTitle }),
     react: NewCommentEmail({
+      locale,
       postTitle,
       postUrl,
       commenterName,
@@ -555,6 +586,8 @@ interface SendChatMessageEmailParams {
   /** Conversation-specific reply address so a visitor's reply routes back to
    *  the right thread (inbound email channel). */
   replyTo?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 /**
@@ -574,31 +607,18 @@ export async function sendChatMessageEmail(
     logoUrl,
     unsubscribeUrl,
     replyTo,
+    locale,
   } = params
 
   const isReply = direction === 'agent_reply'
   const isStarted = direction === 'agent_started'
-  const heading = isReply
-    ? `New reply from ${workspaceName}`
-    : isStarted
-      ? `New message from ${workspaceName}`
-      : 'New chat message'
-  const intro = isReply
-    ? `${senderName} replied to your conversation with ${workspaceName}.`
-    : isStarted
-      ? `${senderName} from ${workspaceName} sent you a message.`
-      : `${senderName} started a conversation in ${workspaceName}.`
-  const ctaLabel = isReply || isStarted ? 'View conversation' : 'Open inbox'
-  const reason = isReply
-    ? 'You received this email because you have an open conversation with this team.'
-    : isStarted
-      ? `You received this email because ${workspaceName} sent you a message.`
-      : 'You received this email because you are a member of this workspace.'
-  const subject = isReply
-    ? `New reply from ${workspaceName}`
-    : isStarted
-      ? `New message from ${workspaceName}`
-      : `New chat message in ${workspaceName}`
+  const kind = isReply ? 'reply' : isStarted ? 'started' : 'visitor'
+  const vars = { workspace: workspaceName, sender: senderName }
+  const heading = t(locale, `chat.${kind}.heading`, vars)
+  const intro = t(locale, `chat.${kind}.intro`, vars)
+  const ctaLabel = t(locale, isReply || isStarted ? 'chat.viewConversation' : 'chat.openInbox')
+  const reason = t(locale, `chat.${kind}.reason`, vars)
+  const subject = t(locale, `chat.${kind}.subject`, vars)
 
   if (getProvider() === 'console') {
     log.debug(
@@ -622,6 +642,7 @@ export async function sendChatMessageEmail(
       reason,
       unsubscribeUrl,
       logoUrl,
+      locale,
     }),
     replyTo,
   })
@@ -641,14 +662,25 @@ export interface SendPostMentionEmailArgs {
   workspaceName: string
   unsubscribeUrl?: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendPostMentionEmail(args: SendPostMentionEmailArgs): Promise<EmailResult> {
-  const { to, mentionerName, postTitle, excerpt, postUrl, workspaceName, unsubscribeUrl, logoUrl } =
-    args
+  const {
+    to,
+    mentionerName,
+    postTitle,
+    excerpt,
+    postUrl,
+    workspaceName,
+    unsubscribeUrl,
+    logoUrl,
+    locale,
+  } = args
 
-  const displayName = mentionerName || 'Anonymous user'
-  const subject = `${displayName} mentioned you in "${postTitle}"`
+  const displayName = mentionerName || t(locale, 'mention.anonymous')
+  const subject = t(locale, 'mention.subject', { name: displayName, title: postTitle })
 
   if (getProvider() === 'console') {
     log.debug(
@@ -669,6 +701,7 @@ export async function sendPostMentionEmail(args: SendPostMentionEmailArgs): Prom
       workspaceName,
       unsubscribeUrl,
       logoUrl,
+      locale,
     }),
   })
 }
@@ -685,6 +718,8 @@ interface SendChangelogPublishedParams {
   workspaceName: string
   unsubscribeUrl: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendChangelogPublishedEmail(
@@ -698,6 +733,7 @@ export async function sendChangelogPublishedEmail(
     workspaceName,
     unsubscribeUrl,
     logoUrl,
+    locale,
   } = params
 
   if (getProvider() === 'console') {
@@ -710,8 +746,9 @@ export async function sendChangelogPublishedEmail(
 
   return sendEmail({
     to,
-    subject: `New update: ${changelogTitle}`,
+    subject: t(locale, 'changelog.subject', { title: changelogTitle }),
     react: ChangelogPublishedEmail({
+      locale,
       changelogTitle,
       changelogUrl,
       contentPreview,
@@ -735,6 +772,8 @@ interface SendFeedbackLinkedParams {
   unsubscribeUrl: string
   attributedByName?: string
   logoUrl?: string
+  /** Langue du destinataire (`users.locale`) ; l'anglais si elle est inconnue. */
+  locale?: string
 }
 
 export async function sendFeedbackLinkedEmail(
@@ -749,6 +788,7 @@ export async function sendFeedbackLinkedEmail(
     unsubscribeUrl,
     attributedByName,
     logoUrl,
+    locale,
   } = params
 
   if (getProvider() === 'console') {
@@ -761,8 +801,9 @@ export async function sendFeedbackLinkedEmail(
 
   return sendEmail({
     to,
-    subject: `Your feedback has been linked to "${postTitle}"`,
+    subject: t(locale, 'linked.subject', { title: postTitle }),
     react: FeedbackLinkedEmail({
+      locale,
       recipientName,
       postTitle,
       postUrl,

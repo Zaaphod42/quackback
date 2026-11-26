@@ -1,6 +1,7 @@
 import { Button, Heading, Section, Text } from '@react-email/components'
 import { EmailLayout, NotificationFooter } from './email-layout'
 import { typography, button, colors } from './shared-styles'
+import { t } from '../i18n'
 
 interface ChangelogPublishedEmailProps {
   changelogTitle: string
@@ -9,6 +10,7 @@ interface ChangelogPublishedEmailProps {
   organizationName: string
   unsubscribeUrl: string
   logoUrl?: string
+  locale?: string
 }
 
 export function ChangelogPublishedEmail({
@@ -18,17 +20,21 @@ export function ChangelogPublishedEmail({
   organizationName,
   unsubscribeUrl,
   logoUrl,
+  locale,
 }: ChangelogPublishedEmailProps) {
   return (
     <EmailLayout
-      preview={`New update from ${organizationName}: ${changelogTitle}`}
+      preview={t(locale, 'changelog.preview', {
+        workspace: organizationName,
+        title: changelogTitle,
+      })}
       logoUrl={logoUrl}
       logoAlt={organizationName}
     >
       {/* Content */}
-      <Heading style={typography.h1}>New update published</Heading>
+      <Heading style={typography.h1}>{t(locale, 'changelog.heading')}</Heading>
       <Text style={typography.text}>
-        {organizationName} just published an update related to your feedback.
+        {t(locale, 'changelog.body', { workspace: organizationName })}
       </Text>
 
       {/* Changelog Title */}
@@ -53,14 +59,15 @@ export function ChangelogPublishedEmail({
       {/* CTA Button */}
       <Section style={{ textAlign: 'center', marginTop: '32px', marginBottom: '32px' }}>
         <Button style={button.primary} href={changelogUrl}>
-          View Update
+          {t(locale, 'changelog.button')}
         </Button>
       </Section>
 
       {/* Footer */}
       <NotificationFooter
-        reason="You received this email because you submitted or subscribed to feedback related to this update."
+        reason={t(locale, 'changelog.reason')}
         unsubscribeUrl={unsubscribeUrl}
+        locale={locale}
       />
     </EmailLayout>
   )
