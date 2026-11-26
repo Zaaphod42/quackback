@@ -8,6 +8,7 @@
  *    identified (anonymous visitors have no deliverable address; the widget's
  *    unread badge covers the online case).
  */
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { db, eq, inArray, principal, user } from '@/lib/server/db'
 import type { Conversation } from '@/lib/server/db'
 import type { PrincipalId, ConversationId } from '@quackback/ids'
@@ -91,9 +92,10 @@ export async function notifyVisitorMessage(opts: {
       await Promise.allSettled(
         team
           .filter((t) => t.email)
-          .map((t) =>
+          .map(async (t) =>
             sendChatMessageEmail({
               to: t.email!,
+              locale: await emailLocaleFor(t.email),
               direction: 'visitor_message',
               senderName: opts.authorName,
               messagePreview: body,
@@ -136,10 +138,7 @@ export async function notifyAgentReply(opts: {
     if (!recipient) {
       // The visitor is offline and unreachable — surface it instead of dropping
       // silently (the inbox can flag conversations with no reply-to address).
-      log.warn(
-        { conversation_id: opts.conversationId },
-        'agent reply undeliverable (no email)'
-      )
+      log.warn({ conversation_id: opts.conversationId }, 'agent reply undeliverable (no email)')
       return
     }
 
@@ -158,6 +157,7 @@ export async function notifyAgentReply(opts: {
       : undefined
     const result = await sendChatMessageEmail({
       to: recipient,
+      locale: await emailLocaleFor(recipient),
       direction: 'agent_reply',
       senderName: opts.agentName,
       messagePreview: previewOf(opts.content),
@@ -216,6 +216,7 @@ export async function notifyConversationStarted(opts: {
       : undefined
     const result = await sendChatMessageEmail({
       to: recipient,
+      locale: await emailLocaleFor(recipient),
       direction: 'agent_started',
       senderName: opts.agentName,
       messagePreview: previewOf(opts.content),

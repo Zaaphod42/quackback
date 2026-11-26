@@ -1,3 +1,4 @@
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import {
@@ -279,7 +280,12 @@ async function createAuth() {
         const { getEmailSafeUrl } = await import('@/lib/server/storage/s3')
         const settings = await db.query.settings.findFirst({ columns: { logoKey: true } })
         const logoUrl = getEmailSafeUrl(settings?.logoKey) ?? undefined
-        await sendPasswordResetEmail({ to: user.email, resetLink: url, logoUrl })
+        await sendPasswordResetEmail({
+          to: user.email,
+          resetLink: url,
+          logoUrl,
+          locale: await emailLocaleFor(user.email, { requestFallback: true }),
+        })
       },
       resetPasswordTokenExpiresIn: 60 * 60 * 24, // 24 hours
     },

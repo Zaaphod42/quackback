@@ -9,6 +9,7 @@
  * The accept flow (magic-link callback) calls acceptPortalInviteFn from the
  * portal-invite.$inviteId route.
  */
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequestHeaders } from '@tanstack/react-start/server'
@@ -170,6 +171,7 @@ async function sendOnePortalInvite({
     inviteLink,
     logoUrl,
     personalMessage: message,
+    locale: await emailLocaleFor(email),
   })
 
   await recordAuditEvent({
@@ -414,6 +416,7 @@ export const resendPortalInviteFn = createServerFn({ method: 'POST' })
         workspaceName: auth.settings.name,
         inviteLink,
         logoUrl,
+        locale: await emailLocaleFor(inv.email),
       })
     } catch (sendError) {
       // The new link never went out — drop it from the set and revoke it.

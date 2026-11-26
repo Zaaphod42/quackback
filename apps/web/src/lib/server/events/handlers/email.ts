@@ -3,6 +3,7 @@
  * Sends email notifications to subscribers when events occur.
  */
 
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import {
   sendStatusChangeEmail,
   sendNewCommentEmail,
@@ -22,6 +23,7 @@ export const emailHook: HookHandler = {
     const cfg = config as EmailConfig
 
     log.debug({ event_type: event.type }, 'sending email notification')
+    const locale = await emailLocaleFor(email)
 
     try {
       let result: { sent: boolean }
@@ -36,6 +38,7 @@ export const emailHook: HookHandler = {
           workspaceName: cfg.workspaceName,
           unsubscribeUrl,
           logoUrl: cfg.logoUrl,
+          locale,
         })
       } else if (event.type === 'comment.created') {
         result = await sendNewCommentEmail({
@@ -48,6 +51,7 @@ export const emailHook: HookHandler = {
           workspaceName: cfg.workspaceName,
           unsubscribeUrl,
           logoUrl: cfg.logoUrl,
+          locale,
         })
       } else if (event.type === 'post.mentioned') {
         const data = event.data as EventPostMentionedData
@@ -60,6 +64,7 @@ export const emailHook: HookHandler = {
           workspaceName: cfg.workspaceName,
           unsubscribeUrl,
           logoUrl: cfg.logoUrl,
+          locale,
         })
       } else if (event.type === 'changelog.published') {
         const changelogCfg = config as Record<string, unknown>
@@ -71,6 +76,7 @@ export const emailHook: HookHandler = {
           workspaceName: cfg.workspaceName,
           unsubscribeUrl,
           logoUrl: cfg.logoUrl,
+          locale,
         })
       } else {
         return { success: false, error: `Unsupported event type: ${event.type}` }

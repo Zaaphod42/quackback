@@ -6,6 +6,7 @@
  * Never throws — failures are logged but don't block the accept flow.
  */
 
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { db, eq, principal, user, posts } from '@/lib/server/db'
 import { getBaseUrl } from '@/lib/server/config'
 import { getEmailSafeUrl } from '@/lib/server/storage/s3'
@@ -86,6 +87,7 @@ export async function sendFeedbackAttributionEmail(
       unsubscribeUrl,
       attributedByName,
       logoUrl: getEmailSafeUrl(workspace?.logoKey) ?? undefined,
+      locale: await emailLocaleFor(recipientEmail),
     })
   } catch (error) {
     // Never fail the accept flow due to email errors

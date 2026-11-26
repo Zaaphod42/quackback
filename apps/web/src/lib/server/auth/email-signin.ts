@@ -1,3 +1,4 @@
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { getAuth, getOTP } from './index'
 import { mintMagicLinkUrl } from './magic-link-mint'
 import { config } from '@/lib/server/config'
@@ -64,5 +65,6 @@ export async function requestEmailSignin(opts: {
     signInUrl,
     code: otp,
     logoUrl: getEmailSafeUrl(settings?.logoKey) ?? undefined,
+    locale: await emailLocaleFor(opts.email, { requestFallback: true }),
   })
 }

@@ -1,3 +1,4 @@
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { z } from 'zod'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequestHeaders } from '@tanstack/react-start/server'
@@ -995,6 +996,7 @@ export const sendInvitationFn = createServerFn({ method: 'POST' })
         workspaceName: auth.settings.name,
         inviteLink,
         logoUrl,
+        locale: await emailLocaleFor(email),
       })
 
       log.info({ invitation_id: invitationId, sent: result.sent }, 'invitation sent')
@@ -1150,6 +1152,7 @@ export const resendInvitationFn = createServerFn({ method: 'POST' })
           workspaceName: auth.settings.name,
           inviteLink,
           logoUrl,
+          locale: await emailLocaleFor(invitationRecord.email),
         })
       } catch (sendError) {
         // The new link never went out — drop it from the set and revoke it.

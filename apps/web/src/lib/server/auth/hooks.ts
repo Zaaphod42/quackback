@@ -19,6 +19,7 @@
  *     cookie, and redirect.
  */
 
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { APIError, createAuthMiddleware } from 'better-auth/api'
 import { generateId } from '@quackback/ids'
 import {
@@ -1038,6 +1039,7 @@ export async function handleNewDeviceNotification(
         ipAddress: ip,
         userAgent,
         logoUrl: tenant?.brandingData?.logoUrl ?? undefined,
+        locale: await emailLocaleFor(email),
       }),
       recordAuditEvent({
         event: 'auth.signin.new_device',
@@ -1086,6 +1088,42 @@ export async function handleCountryCapture(ctx: {
       .where(eq(userTable.id, userId as UserId))
   } catch (error) {
     log.error({ err: error }, 'country capture failed')
+  }
+}
+
+/**
+ * Enregistre la langue du navigateur sur le compte (`user.locale`) à chaque connexion qui ouvre une session : c'est la
+ * langue dans laquelle les e-mails lui seront écrits (`emailLocaleFor`). Seules les six langues de Diafane sont
+ * retenues, toute autre devient `en`. Sans en-tête Accept-Language, la valeur déjà enregistrée est conservée. Meilleur
+ * effort : un échec d'écriture ne bloque jamais la connexion.
+ */
+export async function handleLocaleCapture(ctx: {
+  context?: {
+    newSession?: { user?: { id?: string } } | null
+  }
+}): Promise<void> {
+  const userId = ctx.context?.newSession?.user?.id
+  if (typeof userId !== 'string') return
+
+  const accept = getRequestHeaders().get('accept-language')
+  if (!accept) return
+  const { resolveLocale, normalizeLocale } = await import('@/lib/shared/i18n')
+  const locale = resolveLocale(accept)
+
+  try {
+    const { db, user: userTable, eq } = await import('@/lib/server/db')
+    type UserId = `user_${string}`
+    const row = await db.query.user.findFirst({
+      where: eq(userTable.id, userId as UserId),
+      columns: { locale: true },
+    })
+    if (row?.locale && normalizeLocale(row.locale) === locale) return
+    await db
+      .update(userTable)
+      .set({ locale })
+      .where(eq(userTable.id, userId as UserId))
+  } catch (error) {
+    log.error({ err: error }, 'locale capture failed')
   }
 }
 
@@ -1165,6 +1203,8 @@ export const hooksAfter = createAuthMiddleware(async (ctx) => {
   await handleSignInSuccessAudit(ctx as Parameters<typeof handleSignInSuccessAudit>[0])
   // Geo-IP country from CDN headers; written best-effort, never blocks.
   await handleCountryCapture(ctx as Parameters<typeof handleCountryCapture>[0])
+  // Langue du navigateur, pour écrire les e-mails dans la langue du compte.
+  await handleLocaleCapture(ctx as Parameters<typeof handleLocaleCapture>[0])
   // Fires only when a new device fingerprint (UA + /24) for this user
   // is observed; default-on but workspace can opt out.
   await handleNewDeviceNotification(

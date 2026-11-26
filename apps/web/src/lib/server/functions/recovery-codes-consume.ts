@@ -15,6 +15,7 @@
  * available without re-reading headers.
  */
 
+import { emailLocaleFor } from '@/lib/server/email-locale'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequestHeaders } from '@tanstack/react-start/server'
 import { z } from 'zod'
@@ -208,6 +209,7 @@ async function sendRecoveryCodeAlert(opts: {
       ipAddress: getClientIp(opts.headers) || null,
       userAgent: opts.headers.get('user-agent'),
       occurredAt: opts.occurredAt.toUTCString(),
+      locale: await emailLocaleFor(opts.email),
     })
   } catch (error) {
     log.error({ err: error }, 'failed to send security alert email')
