@@ -710,5 +710,5 @@
   "portal.hc.category.noArticlesInCategory": "Aún no hay artículos en esta categoría.",
   "portal.changelog.shippedFeatures": "Funciones lanzadas",
   "portal.settings.ssoManaged.title": "Gestionado por su proveedor de identidad",
-  "portal.settings.ssoManaged.body": "Su contraseña y su autenticación en dos pasos dependen del inicio de sesión único de su organización. Cámbielas donde inicia sesión habitualmente."
+  "portal.settings.ssoManaged.body": "Su contraseña y su autenticación en dos pasos dependen del inicio de sesión único de su organización. Cámbielas allí donde se conecta habitualmente."
 }
