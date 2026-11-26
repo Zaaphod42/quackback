@@ -159,7 +159,7 @@ export function WidgetShell({
           )}
           {activeTab !== 'home' && !hideTitle && (
             <h2
-              className="widget-shell-titre truncate pb-[3px] text-[22px] font-normal leading-none text-foreground"
+              className="widget-shell-titre truncate text-[22px] font-normal leading-none text-foreground"
               style={{ fontFamily: "'Glass Antiqua', Georgia, serif" }}
             >
               {activeTab === 'feedback' ? (
