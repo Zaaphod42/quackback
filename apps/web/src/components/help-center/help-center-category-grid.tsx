@@ -1,3 +1,4 @@
+import { FormattedMessage } from 'react-intl'
 import { Link } from '@tanstack/react-router'
 import { getTopLevelCategories } from './help-center-utils'
 import { CategoryIcon } from './category-icon'
@@ -52,7 +53,10 @@ export function HelpCenterCategoryGrid({ categories, editors = {} }: HelpCenterC
   if (topLevel.length === 0) {
     return (
       <div className="flex items-center justify-center py-16 text-muted-foreground">
-        No categories yet. Check back soon.
+        <FormattedMessage
+          id="portal.hc.categoryGrid.empty"
+          defaultMessage="No categories yet. Check back soon."
+        />
       </div>
     )
   }

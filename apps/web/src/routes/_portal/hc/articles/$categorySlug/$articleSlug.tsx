@@ -1,3 +1,4 @@
+import { FormattedMessage } from 'react-intl'
 import { createFileRoute, getRouteApi, notFound, Link } from '@tanstack/react-router'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -139,7 +140,10 @@ function ArticleDetailPage() {
                   <span className="truncate">All {category.name}</span>
                 </Link>
                 <h4 className="mb-2 shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  In this category
+                  <FormattedMessage
+                    id="portal.hc.category.inThis"
+                    defaultMessage="In this category"
+                  />
                 </h4>
                 <ScrollArea className="min-h-0 flex-1" scrollBarClassName="w-1.5">
                   <ul className="space-y-0.5 overflow-x-hidden pr-2">

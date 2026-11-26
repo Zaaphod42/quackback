@@ -1,3 +1,4 @@
+import { FormattedMessage } from 'react-intl'
 import { createFileRoute, getRouteApi, Link } from '@tanstack/react-router'
 import {
   DocumentTextIcon,
@@ -159,7 +160,9 @@ function CategoryIndexPage() {
                 className="mb-4 shrink-0 inline-flex w-full items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <ArrowLeftIcon className="h-3.5 w-3.5 shrink-0" />
-                <span className="min-w-0 truncate">All categories</span>
+                <span className="min-w-0 truncate">
+                  <FormattedMessage id="portal.hc.category.all" defaultMessage="All categories" />
+                </span>
               </Link>
               <p className="mb-1.5 shrink-0 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
                 Browse
@@ -286,7 +289,10 @@ function CategoryIndexPage() {
                           </>
                         ) : (
                           <p className="px-5 py-3.5 text-sm text-muted-foreground">
-                            No articles yet.
+                            <FormattedMessage
+                              id="portal.hc.category.noArticlesYet"
+                              defaultMessage="No articles yet."
+                            />
                           </p>
                         )}
                       </div>
@@ -298,7 +304,12 @@ function CategoryIndexPage() {
 
             {/* Direct articles */}
             {articles.length === 0 && (!subcategories || subcategories.length === 0) ? (
-              <p className="text-muted-foreground">No articles in this category yet.</p>
+              <p className="text-muted-foreground">
+                <FormattedMessage
+                  id="portal.hc.category.noArticlesInCategory"
+                  defaultMessage="No articles in this category yet."
+                />
+              </p>
             ) : articles.length > 0 ? (
               <div className="rounded-xl border border-border/50 overflow-hidden divide-y divide-border/50 bg-card">
                 {articles.map((article) => (

@@ -1,3 +1,4 @@
+import { FormattedMessage, useIntl } from 'react-intl'
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { Input } from '@/components/ui/input'
@@ -25,6 +26,7 @@ interface SearchResult {
 // ============================================================================
 
 export function HelpCenterHeroSearch() {
+  const intl = useIntl()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -101,7 +103,10 @@ export function HelpCenterHeroSearch() {
         <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search articles..."
+          placeholder={intl.formatMessage({
+            id: 'portal.hc.search.placeholder',
+            defaultMessage: 'Search articles...',
+          })}
           value={query}
           onChange={handleChange}
           onFocus={() => results.length > 0 && setShowResults(true)}
@@ -149,7 +154,9 @@ export function HelpCenterCompactSearch() {
   return (
     <Button variant="outline" size="sm" className="gap-2 text-muted-foreground" disabled>
       <MagnifyingGlassIcon className="h-4 w-4" />
-      <span className="hidden sm:inline">Search...</span>
+      <span className="hidden sm:inline">
+        <FormattedMessage id="portal.hc.search.compact" defaultMessage="Search..." />
+      </span>
     </Button>
   )
 }
