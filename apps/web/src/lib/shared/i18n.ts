@@ -1,18 +1,8 @@
 export const DEFAULT_LOCALE = 'en' as const
 
-export const SUPPORTED_LOCALES = [
-  'en',
-  'de',
-  'fr',
-  'es',
-  'it',
-  'nl',
-  'ar',
-  'ru',
-  'pt-br',
-  'zh-cn',
-  'zh-tw',
-] as const
+// Les six langues de Diafane (Seb 2026-11-26) : toute autre langue du visiteur retombe sur l'anglais,
+// plutot que sur un catalogue a moitie traduit. Ajouter une langue = son catalogue COMPLET dans `locales/`.
+export const SUPPORTED_LOCALES = ['en', 'de', 'fr', 'es', 'it', 'nl'] as const
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
 
@@ -34,21 +24,6 @@ export function normalizeLocale(locale: string): SupportedLocale | null {
 
   // Strip region subtag (e.g. "fr-FR" -> "fr"), but only accept 2-letter base codes
   const parts = lower.split('-')
-
-  // Chinese is script-sensitive: Simplified (zh-cn) and Traditional (zh-tw) are
-  // separate catalogs, so the generic "strip to base" rule below would wrongly
-  // collapse them to a non-existent "zh". Infer the script from CLDR's
-  // likely-subtags data via Intl.Locale.maximize(): an explicit "Hant" script
-  // or a Traditional region (TW/HK/MO, etc.) yields "Hant" → zh-tw; everything
-  // else under "zh" (bare zh, Hans, CN, SG) maximizes to "Hans" → zh-cn.
-  if (parts[0] === 'zh') {
-    try {
-      return new Intl.Locale(lower).maximize().script === 'Hant' ? 'zh-tw' : 'zh-cn'
-    } catch {
-      // Irregular tag Intl can't parse (e.g. "zh-min-nan") → Simplified default.
-      return 'zh-cn'
-    }
-  }
 
   if (parts.length >= 2) {
     const base = parts[0]

@@ -26,7 +26,7 @@ describe('widget locale list', () => {
     const widget = readWidgetLocales()
     // Guard against the parse silently returning nothing.
     expect(widget.length).toBeGreaterThan(0)
-    // The widget uses display casing (pt-BR, zh-CN); normalizeLocale lowercases
+    // The widget uses display casing; normalizeLocale lowercases
     // on the way in, so compare case-insensitively.
     expect(new Set(widget.map((l) => l.toLowerCase()))).toEqual(
       new Set(SUPPORTED_LOCALES.map((l) => l.toLowerCase()))
