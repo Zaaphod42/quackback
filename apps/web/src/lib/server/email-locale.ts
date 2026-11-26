@@ -14,6 +14,35 @@ import { logger } from '@/lib/server/logger'
 
 const log = logger.child({ component: 'email-locale' })
 
+/**
+ * Langue probable d'après le pays de la dernière connexion, pour les comptes qui n'ont pas encore de `user.locale`.
+ * Seuls les pays où UNE des six langues domine sont listés : la Belgique, la Suisse et le Luxembourg sont ambigus,
+ * donc absents (l'anglais s'applique alors, jusqu'à la prochaine connexion qui enregistre la vraie langue).
+ */
+const COUNTRY_LOCALE: Record<string, string> = {
+  FR: 'fr',
+  MC: 'fr',
+  IT: 'it',
+  SM: 'it',
+  VA: 'it',
+  ES: 'es',
+  MX: 'es',
+  AR: 'es',
+  CO: 'es',
+  CL: 'es',
+  PE: 'es',
+  UY: 'es',
+  DE: 'de',
+  AT: 'de',
+  LI: 'de',
+  NL: 'nl',
+  SR: 'nl',
+}
+
+export function localeFromCountry(country: string | null | undefined): string | undefined {
+  return country ? COUNTRY_LOCALE[country.toUpperCase()] : undefined
+}
+
 /** Langue du navigateur de la requête en cours, ou undefined hors requête ou sans en-tête Accept-Language. */
 async function requestLocale(): Promise<string | undefined> {
   try {
@@ -34,9 +63,12 @@ export async function emailLocaleFor(
     const { db, user: userTable, eq } = await import('@/lib/server/db')
     const row = await db.query.user.findFirst({
       where: eq(userTable.email, email.trim().toLowerCase()),
-      columns: { locale: true },
+      columns: { locale: true, country: true },
     })
     if (row?.locale) return normalizeLocale(row.locale) ?? 'en'
+    // Compte antérieur à l'enregistrement de la langue : le pays de sa dernière connexion en donne une approximation.
+    const fromCountry = localeFromCountry(row?.country)
+    if (fromCountry) return fromCountry
   } catch (error) {
     log.warn({ err: error }, 'email locale lookup failed')
   }

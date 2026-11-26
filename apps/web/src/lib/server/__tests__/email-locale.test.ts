@@ -15,7 +15,7 @@ vi.mock('@tanstack/react-start/server', () => ({
   getRequestHeaders: () => ({ get: () => acceptLanguage() }),
 }))
 
-import { emailLocaleFor } from '../email-locale'
+import { emailLocaleFor, localeFromCountry } from '../email-locale'
 
 beforeEach(() => {
   findFirst.mockReset()
@@ -49,5 +49,23 @@ describe('emailLocaleFor', () => {
     findFirst.mockRejectedValue(new Error('db down'))
     expect(await emailLocaleFor('a@b.test')).toBeUndefined()
     expect(await emailLocaleFor(null)).toBeUndefined()
+  })
+
+  it('devine la langue d’un ancien compte d’après son pays quand aucune langue n’est enregistrée', async () => {
+    findFirst.mockResolvedValue({ locale: null, country: 'IT' })
+    expect(await emailLocaleFor('a@b.test')).toBe('it')
+    findFirst.mockResolvedValue({ locale: null, country: 'BE' })
+    expect(await emailLocaleFor('a@b.test')).toBeUndefined()
+  })
+
+  it('préfère la langue enregistrée au pays', async () => {
+    findFirst.mockResolvedValue({ locale: 'nl', country: 'FR' })
+    expect(await emailLocaleFor('a@b.test')).toBe('nl')
+  })
+
+  it('ne devine rien pour les pays ambigus ou inconnus', () => {
+    for (const c of ['BE', 'CH', 'LU', 'US', 'JP', null, undefined]) {
+      expect(localeFromCountry(c)).toBeUndefined()
+    }
   })
 })
