@@ -1,3 +1,4 @@
+import { normalizeLocale } from '@/lib/shared/i18n'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { generateId } from '@quackback/ids'
@@ -51,6 +52,7 @@ export const RESERVED_JWT_CLAIMS = new Set([
   'name',
   'avatarURL',
   'avatarUrl',
+  'locale',
   'segments',
   'iat',
   'exp',
@@ -221,6 +223,13 @@ export const Route = createFileRoute('/api/widget/identify')({
                 : undefined,
         }
 
+        // DIAFANE : la langue du compte, portee par le jeton SIGNE (jamais par un corps non verifie). Elle devient
+        // `user.locale`, langue des e-mails ; une langue hors des six de Diafane devient l'anglais.
+        const locale =
+          claimsAreVerified && typeof claims.locale === 'string' && claims.locale.trim() !== ''
+            ? (normalizeLocale(claims.locale) ?? 'en')
+            : undefined
+
         // Extract custom attributes (silently drop unknown/invalid)
         const customClaims = extractCustomClaims(claims)
         let validAttrs: Record<string, unknown> = {}
@@ -297,6 +306,9 @@ export const Route = createFileRoute('/api/widget/identify')({
           if (country && country !== userRecord.country) {
             updates.country = country
           }
+          if (locale && locale !== (normalizeLocale(userRecord.locale ?? '') ?? null)) {
+            updates.locale = locale
+          }
           if (externalId && userRecord.externalId !== externalId) {
             // First verified sight of this account — stamp the durable subject.
             updates.externalId = externalId
@@ -333,6 +345,7 @@ export const Route = createFileRoute('/api/widget/identify')({
               image: identified.avatarURL || null,
               metadata: hasAttrs ? JSON.stringify(validAttrs) : null,
               country: country ?? null,
+              locale: locale ?? null,
               // Only the verified path supplies a trusted subject; null otherwise.
               externalId,
               createdAt: new Date(),
